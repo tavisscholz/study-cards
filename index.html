@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Addie's Ch 15–16 Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Patrick+Hand&display=swap">
+<style>
+  /* ------------------------------------------------------------------
+     Addie's Ch 15–16 Cards — a Leitner-box flashcard game built from the
+     Tennessee history study guide (early peoples + the Cherokee, Chickasaw,
+     Creek and Shawnee). One committed visual world: index cards on a deep
+     river ground ("Tana-see": where the rivers come together).
+     ------------------------------------------------------------------ */
+  :root {
+    --river: #1F4E56;
+    --river-deep: #143940;
+    --river-line: #3C7982;
+    --mist: #CFE2E4;
+    --mist-dim: #A8C6C9;
+    --card: #FFFCF3;
+    --card-edge: #E4DCC6;
+    --rule: #C6D9EC;
+    --rule-red: #E4716A;
+    --ink: #2B2A26;
+    --ink-soft: #5E5B52;
+    --pencil: #454650;
+    --gold: #F2C14E;
+    --gold-deep: #C9962A;
+    --gold-ink: #3A2B06;
+    --good: #2E9A5B;
+    --good-soft: #DCF3E4;
+    --good-ink: #1B5E38;
+    --bad: #D8524C;
+    --bad-soft: #FBE3E0;
+    --bad-ink: #8C2C27;
+    --b0: #2E5F67;
+    --b1: #5F9299;
+    --b2: #93BDC2;
+    --b3: #C9CFA2;
+    --b4: #D19A2E;
+    --b5: #F2C14E;
+    --shadow: 0 22px 44px rgba(6, 26, 30, .48), 0 2px 6px rgba(6, 26, 30, .3);
+    --font-ui: "Fredoka", "Nunito", "Segoe UI", system-ui, sans-serif;
+    --font-sheet: "Newsreader", "Times New Roman", Georgia, serif;
+    --font-hand: "Patrick Hand", "Chalkboard SE", "Marker Felt", "Segoe Print", "Comic Sans MS", sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--river);
+    color: var(--mist);
+    font-family: var(--font-ui);
+    font-size: 16px;
+    line-height: 1.4;
+    overflow-x: hidden;
+  }
+  button { font: inherit; color: inherit; }
+  button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+  .card button:focus-visible { outline-color: var(--river); }
+
+  /* Rivers meeting — drawn once, fixed behind everything. */
+  .rivers {
+    position: fixed; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+  }
+  .rivers path { fill: none; stroke: var(--river-line); stroke-linecap: round; stroke-linejoin: round; }
+
+  #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+
+  .app {
+    position: relative; z-index: 1;
+    max-width: 560px; margin: 0 auto;
+    padding-inline: 16px; padding-block: 14px 48px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+
+  /* ---------- top bar ---------- */
+  .top {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 44px;
+  }
+  .brand { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .eyebrow {
+    font-size: .72rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--mist-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .top > .brand { flex: 1; min-width: 0; }
+  .top .actions-top { display: flex; align-items: center; gap: 8px; flex: none; }
+  .brand h1 { margin: 0; font-size: 1.25rem; font-weight: 600; color: #fff; line-height: 1.1; }
+  .streak {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px 6px 9px; border-radius: 999px;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+    font-weight: 600; font-variant-numeric: tabular-nums; color: #fff;
+    transition: transform .18s ease, background .18s ease;
+  }
+  .streak svg { width: 18px; height: 18px; fill: var(--mist-dim); transition: fill .18s ease; }
+  .streak.hot { background: rgba(242,193,78,.18); border-color: rgba(242,193,78,.5); }
+  .streak.hot svg { fill: var(--gold); }
+  .streak.bump { transform: scale(1.12); }
+  .btn-ghost {
+    background: transparent; border: 1px solid rgba(255,255,255,.2); color: var(--mist);
+    border-radius: 999px; padding: 8px 16px; min-height: 44px; cursor: pointer; font-weight: 500;
+  }
+  .streak .lbl-in { font-weight: 500; color: var(--mist); font-size: .9rem; }
+
+  /* ---------- screens ---------- */
+  .screen { display: none; flex-direction: column; gap: 18px; }
+  .screen.active { display: flex; }
+
+  /* ---------- index card ---------- */
+  .stack { position: relative; }
+  .stack::before, .stack::after {
+    content: ""; position: absolute; inset: 0; border-radius: 10px;
+    background: #F1ECDC; box-shadow: 0 8px 20px rgba(6,26,30,.25);
+    z-index: -1;
+  }
+  .stack::before { transform: rotate(-2.2deg) translate(-3px, 6px); }
+  .stack::after  { transform: rotate(1.6deg) translate(4px, 3px); background: #F7F3E6; }
+  .card {
+    position: relative;
+    background-color: var(--card);
+    background-image:
+      linear-gradient(var(--rule-red), var(--rule-red)),
+      repeating-linear-gradient(to bottom, transparent 0 27px, var(--rule) 27px 28px);
+    background-size: 100% 2px, 100% 28px;
+    background-position: 0 46px, 0 48px;
+    background-repeat: no-repeat, repeat-y;
+    color: var(--ink);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 16px 22px 20px;
+    transition: transform .22s ease, opacity .22s ease;
+  }
+  .card.leave { transform: translateX(-46px) rotate(-3deg); opacity: 0; }
+  .card.enter { transform: translateX(46px) rotate(3deg); opacity: 0; transition: none; }
+  .card-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    font-size: .78rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-soft); height: 30px;
+  }
+  .card-head .box-tag { font-family: var(--font-hand); font-size: 1.05rem; letter-spacing: 0; text-transform: none; font-weight: 400; color: var(--pencil); }
+  .q {
+    font-family: var(--font-sheet); font-size: 1.32rem; line-height: 28px;
+    margin: 4px 0 0; color: var(--ink); text-wrap: pretty; min-height: 56px;
+  }
+  .q .filled, .q .blank {
+    font-family: var(--font-hand); color: var(--pencil); font-size: 1.36em; line-height: 1;
+    display: inline-block; vertical-align: baseline; padding: 0 .3em;
+    border-bottom: 2px solid var(--ink);
+  }
+  .q .filled { border-bottom-color: var(--ink-soft); }
+  .q .blank { min-width: 6.5ch; text-align: center; transition: color .2s ease, background .2s ease; }
+  .q .blank:empty::after { content: "?"; color: #B9B3A3; font-family: var(--font-hand); }
+  .q .blank.good { color: var(--good-ink); background: var(--good-soft); border-bottom-color: var(--good); border-radius: 4px 4px 0 0; }
+  .q .blank.badfix { color: var(--good-ink); background: var(--good-soft); border-bottom-color: var(--good); border-radius: 4px 4px 0 0; }
+
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+  @media (max-width: 470px) { .opts { grid-template-columns: 1fr; } }
+  .opt {
+    font-family: var(--font-hand); font-size: 1.42rem; line-height: 1.1;
+    min-height: 58px; padding: 8px 12px 8px 10px;
+    display: flex; align-items: center; gap: 10px; text-align: left;
+    background: #fff; color: var(--pencil);
+    border: 2px solid var(--card-edge); border-radius: 12px;
+    cursor: pointer; transition: border-color .12s ease, transform .12s ease, background .12s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .opt .k {
+    flex: none; width: 24px; height: 24px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: var(--font-ui); font-size: .78rem; font-weight: 600;
+    background: #EFE8D6; color: #6E6753;
+  }
+  .opt .w { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .opt:not([disabled]):active { transform: translateY(1px); }
+  .opts.pending .opt { opacity: 0; pointer-events: none; transform: translateY(6px); }
+  .opts .opt { transition: opacity .28s ease, transform .28s ease, border-color .12s ease, background .12s ease; }
+  .opts.pending::before {
+    content: "Think first…"; grid-column: 1 / -1; position: absolute; left: 0; right: 0; text-align: center;
+    margin-top: 24px; font-family: var(--font-hand); font-size: 1.25rem; color: #B9B3A3; pointer-events: none;
+  }
+  .opts { position: relative; }
+  .opt[disabled] { cursor: default; }
+  .opt.right { background: var(--good-soft); border-color: var(--good); color: var(--good-ink); }
+  .opt.right .k { background: var(--good); color: #fff; }
+  .opt.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad-ink); }
+  .opt.wrong .w { text-decoration: line-through; text-decoration-thickness: 2px; }
+  .opt.wrong .k { background: var(--bad); color: #fff; }
+  .opt.dim { opacity: .55; }
+  .opt.shake { animation: shake .4s ease; }
+  @keyframes shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+
+  .fb {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin-top: 16px; min-height: 48px;
+  }
+  .fb .msg { flex: 1; min-width: 0; font-family: var(--font-ui); font-weight: 600; font-size: 1.05rem; color: var(--ink-soft); }
+  .fb .btn { flex: none; white-space: nowrap; }
+  .fb .msg.good { color: var(--good-ink); }
+  .fb .msg.bad { color: var(--bad-ink); }
+  .btn {
+    border: 0; border-radius: 999px; cursor: pointer; font-weight: 600;
+    padding: 12px 22px; min-height: 48px; font-size: 1rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform .12s ease, filter .12s ease;
+  }
+  @media (hover: hover) {
+    .opt:not([disabled]):hover { border-color: var(--gold-deep); transform: translateY(-1px); }
+    .btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    .btn-ghost:hover { background: rgba(255,255,255,.08); }
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-gold { background: var(--gold); color: var(--gold-ink); }
+  .btn-ink { background: var(--ink); color: #fff; }
+  .btn-big { font-size: 1.2rem; padding: 16px 30px; min-height: 60px; width: 100%; }
+  .hidden { display: none !important; }
+
+  /* ---------- progress ---------- */
+  .progress { display: flex; flex-direction: column; gap: 6px; }
+  .progress .lbl { display: flex; justify-content: space-between; font-size: .85rem; color: var(--mist-dim); font-variant-numeric: tabular-nums; }
+  .bar { height: 10px; border-radius: 999px; background: rgba(255,255,255,.12); overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--gold); border-radius: 999px; transition: width .3s ease; }
+
+  /* ---------- home + summary ---------- */
+  .hero { display: flex; flex-direction: column; gap: 10px; padding-block: 8px 0; }
+  .hero h2 { margin: 0; font-size: 2.1rem; font-weight: 600; line-height: 1.05; color: #fff; text-wrap: balance; }
+  .hero p { margin: 0; max-width: 46ch; color: var(--mist); font-size: 1.02rem; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tile {
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px;
+  }
+  .tile b { font-size: 1.7rem; font-weight: 600; color: #fff; line-height: 1; font-variant-numeric: tabular-nums; }
+  .tile span { font-size: .8rem; color: var(--mist-dim); }
+  .tile.due b { color: var(--gold); }
+  .map { display: flex; flex-direction: column; gap: 8px; }
+  .map .lbl { display: flex; justify-content: space-between; align-items: center; font-size: .85rem; color: var(--mist-dim); }
+  .cells { display: grid; grid-template-columns: repeat(16, 1fr); gap: 5px; }
+  .cell, .legend i { box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
+  .cell { aspect-ratio: 1; border-radius: 4px; background: var(--b0); }
+  .cell.b1 { background: var(--b1); }
+  .cell.b2 { background: var(--b2); }
+  .cell.b3 { background: var(--b3); }
+  .cell.b4 { background: var(--b4); }
+  .cell.b5, .legend i.b5 { background: var(--b5); box-shadow: inset 0 0 0 2px rgba(255,255,255,.6); }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: .78rem; color: var(--mist-dim); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .links { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+  .links button { background: none; border: 0; color: var(--mist-dim); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 10px 8px; min-height: 44px; }
+  .links button:hover { color: #fff; }
+  .note { font-size: .9rem; color: var(--mist-dim); margin: 0; }
+
+  .result-card { padding-bottom: 22px; }
+  .result-card h2 { font-family: var(--font-ui); margin: 6px 0 4px; font-size: 1.9rem; font-weight: 600; color: var(--ink); line-height: 1.1; }
+  .result-card .sub { margin: 0; color: var(--ink-soft); font-size: 1.02rem; }
+  .missed { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .missed li { font-family: var(--font-sheet); font-size: 1.08rem; line-height: 1.35; color: var(--ink); padding-left: 12px; border-left: 3px solid var(--rule-red); }
+  .missed .filled { font-family: var(--font-hand); color: var(--good-ink); font-size: 1.2em; padding: 0 .25em; border-bottom: 2px solid var(--good); }
+  .missed .n { font-family: var(--font-ui); font-size: .75rem; font-weight: 600; color: var(--ink-soft); margin-right: 6px; letter-spacing: .06em; }
+  .actions { display: flex; flex-direction: column; gap: 10px; }
+
+  /* ---------- answer list ---------- */
+  .sheet { padding-block: 20px 24px; }
+  .sheet h2 { font-family: var(--font-sheet); text-align: center; margin: 0 0 14px; font-size: 1.5rem; font-weight: 500; color: var(--ink); }
+  .sheet ol { margin: 0; padding-left: 28px; font-family: var(--font-sheet); font-size: 1.08rem; line-height: 28px; color: var(--ink); }
+  .sheet li { padding-left: 4px; }
+  .sheet li::marker { font-family: var(--font-ui); font-size: .85rem; font-weight: 600; color: var(--ink-soft); }
+  .sheet .filled { font-family: var(--font-hand); color: var(--pencil); font-size: 1.28em; line-height: 1; padding: 0 .3em; border-bottom: 2px solid var(--ink); display: inline-block; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card, .streak, .opt, .btn, .bar > i { transition: none !important; }
+    .card.leave, .card.enter { transform: none; }
+    .opt.shake { animation: none; }
+    .opts .opt { transition: none; }
+  }
+</style>
+</head>
+<body>
+<svg class="rivers" viewBox="0 0 560 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <!-- Two rivers meeting, then one river on downstream: Tana-see. -->
+  <path d="M -40 60 C 120 110, 190 260, 250 400 C 300 520, 330 620, 620 760" stroke-width="16" opacity=".22"/>
+  <path d="M -40 60 C 120 110, 190 260, 250 400 C 300 520, 330 620, 620 760" stroke-width="42" opacity=".07"/>
+  <path d="M 600 40 C 470 120, 330 240, 250 400" stroke-width="12" opacity=".22"/>
+  <path d="M 600 40 C 470 120, 330 240, 250 400" stroke-width="34" opacity=".07"/>
+  <path d="M -40 300 C 60 330, 120 380, 250 400" stroke-width="7" opacity=".16"/>
+  <path d="M 250 400 C 290 480, 300 560, 360 640 C 420 720, 520 790, 620 800" stroke-width="40" opacity=".07"/>
+</svg>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">Ch 15–16 Study Guide</span>
+      <h1>Addie's Cards</h1>
+    </div>
+    <div class="actions-top">
+    <div class="streak hidden" id="streak" title="Cards in a row">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2c.6 2.6-.4 4.6-2 6.2C9.6 10.1 8 11.8 8 14.5c0 1.5.6 2.6 1.4 3.4-.1-2.2 1-3.6 2.6-4.6 1.2 2.2 3.5 3.1 3.5 5.8 0 .5 0 .9-.1 1.3C17.7 19.2 19 17.1 19 14.5 19 9.9 14.6 8.4 13.5 2zM12 22c-4.4 0-7-2.9-7-7.5 0-3.6 2.2-5.8 4.2-7.8C11 4.9 12.3 3.5 11.9.4c-.1-.4.5-.6.7-.2C14.2 3.2 16 5.5 17.4 7.6c1.6 2.3 3.6 4.4 3.6 7.9C21 19.1 17.6 22 12 22z"/></svg>
+      <span id="streak-n">0</span><span class="lbl-in">in a row</span>
+    </div>
+    <button class="btn-ghost hidden" id="btn-quit" type="button">Quit</button>
+    </div>
+  </header>
+
+  <!-- HOME -->
+  <section class="screen active" id="s-home" aria-labelledby="home-h">
+    <div class="hero">
+      <h2 id="home-h">Fill in the blank, one card at a time.</h2>
+      <p>All 32 blanks from your study guide. Get a card right and it comes back later, spaced further out each time. Miss one and it comes right back until you've got it.</p>
+    </div>
+    <div class="tiles">
+      <div class="tile due"><b id="t-due">0</b><span>Due now</span></div>
+      <div class="tile"><b id="t-learning">0</b><span>Learning</span></div>
+      <div class="tile"><b id="t-mastered">0</b><span>Mastered</span></div>
+    </div>
+    <button class="btn btn-gold btn-big" id="btn-play" type="button">Play a round</button>
+    <p class="note" id="home-note"></p>
+    <div class="map">
+      <div class="lbl"><span>Your 32 cards</span><span id="map-pct">0% mastered</span></div>
+      <div class="cells" id="map-home" aria-hidden="true"></div>
+      <div class="legend"><span><i style="background:var(--b0)"></i>New</span><span><i style="background:var(--b1)"></i>Learning</span><span><i style="background:var(--b3)"></i>Getting it</span><span><i style="background:var(--b4)"></i>Almost</span><span><i class="b5"></i>Mastered</span></div>
+    </div>
+    <div class="links">
+      <button type="button" id="btn-sheet">See all the answers</button>
+      <button type="button" id="btn-reset">Start over</button>
+    </div>
+  </section>
+
+  <!-- PLAY -->
+  <section class="screen" id="s-play">
+    <div class="stack">
+      <div class="card" id="card">
+        <div class="card-head"><span id="card-num">Card 1</span><span class="box-tag" id="card-box"></span></div>
+        <p class="q" id="q"></p>
+        <div class="opts" id="opts"></div>
+        <div class="fb">
+          <span class="msg" id="fb-msg" role="status"></span>
+          <button class="btn btn-ink hidden" id="btn-next" type="button">Next card</button>
+        </div>
+      </div>
+    </div>
+    <div class="progress">
+      <div class="lbl"><span id="p-lbl">0 of 10 cleared</span><span id="p-left"></span></div>
+      <div class="bar"><i id="p-fill"></i></div>
+    </div>
+  </section>
+
+  <!-- SUMMARY -->
+  <section class="screen" id="s-done" aria-labelledby="done-h">
+    <div class="stack">
+      <div class="card result-card">
+        <div class="card-head"><span>Round done</span><span class="box-tag" id="done-tag"></span></div>
+        <h2 id="done-h">Round done!</h2>
+        <p class="sub" id="done-sub"></p>
+        <ul class="missed" id="done-missed"></ul>
+      </div>
+    </div>
+    <div class="map">
+      <div class="lbl"><span>Your 32 cards</span><span id="map-pct-2">0% mastered</span></div>
+      <div class="cells" id="map-done" aria-hidden="true"></div>
+    </div>
+    <p class="note" id="done-note"></p>
+    <div class="actions">
+      <button class="btn btn-gold btn-big" id="btn-again" type="button">Play another round</button>
+      <button class="btn-ghost" id="btn-home" type="button">Back to start</button>
+    </div>
+  </section>
+
+  <!-- ANSWER SHEET -->
+  <section class="screen" id="s-sheet" aria-labelledby="sheet-h">
+    <div class="card sheet">
+      <h2 id="sheet-h">Ch 15–16 Study Guide</h2>
+      <ol id="sheet-list"></ol>
+    </div>
+    <div class="actions">
+      <button class="btn btn-gold btn-big" id="btn-play-2" type="button">Play a round</button>
+      <button class="btn-ghost" id="btn-home-2" type="button">Back to start</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ------------------------------------------------------------------
+  // The study guide. Each item is the worksheet sentence split into text
+  // and answer slots; every slot becomes one card. `d` are the wrong
+  // choices that slot draws from (three are shown alongside the answer).
+  // Spelling follows the textbook, not the pencil ("chiefdom", "Chickasaw").
+  // ------------------------------------------------------------------
+  var PEOPLES = ['Archaic', 'Woodland', 'Mississippian', 'Cherokee', 'Chickasaw', 'Creek', 'Shawnee'];
+  function others(answer, extra) {
+    var pool = PEOPLES.filter(function (p) { return p !== answer; });
+    return extra ? pool.concat(extra) : pool;
+  }
+
+  var ITEMS = [
+    { n: 1,  t: ['The point that something begins is called the ', { a: 'origin', d: ['plaza', 'chiefdom', 'trade', 'settlement'] }, '.'] },
+    { n: 2,  t: ['Native, or original means something is ', { a: 'indigenous', d: ['nomadic', 'fortified', 'innovative', 'foreign'] }, ' to an area.'] },
+    { n: 3,  t: ['If a town or village, like the Mississippian people lived in, is protected, it is ', { a: 'fortified', d: ['indigenous', 'innovative', 'nomadic', 'abandoned'] }, '.'] },
+    { n: 4,  t: ['If one is able to create new methods or ideas to make things better or easier, they are said to be ', { a: 'innovative', d: ['fortified', 'indigenous', 'civilized', 'nomadic'] }, '.'] },
+    { n: 5,  t: [{ a: 'Tana-see', d: ['Tsalagi', 'Mico', 'Wigwam', 'Chiefdom'] }, ' is a Yuchi tribe word meaning, “where the rivers come together.”'] },
+    { n: 6,  t: ['A town square is a ', { a: 'plaza', d: ['chiefdom', 'wigwam', 'settlement', 'mound'] }, '.'] },
+    { n: 7,  t: ['The ', { a: 'Woodland', d: ['Archaic', 'Mississippian', 'Cherokee', 'Shawnee'] }, ' were the first people to grow maize and build permanent shelters.'] },
+    { n: 8,  t: [{ a: 'Archaic', d: ['Woodland', 'Mississippian', 'Chickasaw', 'Creek'] }, ' people were hunter-gatherers that lived in rock shelters.'] },
+    { n: 9,  t: ['The Mississippian people formed a type of government called a ', { a: 'chiefdom', d: ['plaza', 'clan', 'council', 'mico'] }, '.'] },
+    { n: 10, t: [{ a: 'Mississippian', d: ['Archaic', 'Woodland', 'Shawnee', 'Chickasaw'] }, ' people excelled at mound building and trade.'] },
+    { n: 11, t: ['The ', { a: 'Archaic', d: ['Woodland', 'Mississippian', 'Cherokee', 'Creek'] }, ' people survived for roughly 7,000 years!'] },
+    { n: 12, t: ['The ', { a: 'Shawnee', d: ['Cherokee', 'Chickasaw', 'Creek', 'Mississippian'] }, ' believed in a great spirit they called “Our Grandmother.”'] },
+    { n: 13, t: ['“People of principal, or people of a different language,” is what the Cherokee called themselves. ', { a: 'Tsalagi', d: ['Tana-see', 'Mico', 'Southerner', 'Yuchi'] }, ' is the translation.'] },
+    { n: 14, t: ['Shawnee translates to ', { a: 'Southerner', d: ['Tsalagi', 'Tana-see', 'Grandmother', 'Northerner'] }, '.'] },
+    { n: 15, t: ['A ', { a: 'wigwam', d: ['longhouse', 'tipi', 'log cabin', 'mound'] }, ' was a Shawnee shelter.'] },
+    { n: 16, t: [{ a: 'Chickasaw', d: ['Cherokee', 'Creek', 'Shawnee', 'Woodland'] }, ' women put braided beads in their hair to be unique.'] },
+    { n: 17, t: ['The Cherokee government was a very ', { a: 'civilized', d: ['harsh', 'simple', 'confusing', 'strict'] }, ' and ', { a: 'fair', d: ['powerful', 'careful', 'strict', 'secret'] }, ' way to govern.'] },
+    { n: 18, t: ['To avoid ', { a: 'floods', d: ['droughts', 'storms', 'tornadoes', 'wild animals'] }, ', the Chickasaw people built their homes on ', { a: 'high', d: ['low', 'flat', 'soft', 'open'] }, ' ground.'] },
+    { n: 19, t: [{ a: 'Cherokee', d: ['Chickasaw', 'Mississippian', 'Shawnee', 'Archaic'] }, ' women were very important to their clans, and split the work with the men to make their villages stronger.'] },
+    { n: 20, t: ['The Creek named their clans after something in ', { a: 'nature', d: ['battle', 'history', 'legends', 'stories'] }, ', and formed long distance ', { a: 'trade', d: ['war', 'hunting', 'farming', 'storytelling'] }, ' networks.'] },
+    { n: 21, t: ['The mico was the name of the ', { a: 'Creek', d: ['Cherokee', 'Chickasaw', 'Shawnee', 'Mississippian'] }, ' chief.'] },
+    { n: 22, t: [{ a: 'Storytelling', d: ['Building mounds', 'Braiding beads', 'Wearing European clothes', 'Living in rock shelters'] }, ' was a very important part of the Cherokee culture.'] },
+    { n: 23, t: ['The ', { a: 'Cherokee', d: ['Mississippian', 'Woodland', 'Shawnee', 'Creek'] }, ' lived in different homes depending on the season.'] },
+    { n: 24, t: ['The Shawnee liked to wear ', { a: 'European-style', d: ['Cherokee-style', 'Chickasaw-style', 'Creek-style', 'Mississippian-style'] }, ' clothing and use their weapons and tools.'] },
+    { n: 25, t: ['The ', { a: 'Chickasaw', d: ['Cherokee', 'Creek', 'Shawnee', 'Woodland'] }, ' were very concerned about their appearance, their clothes, and their jewelry.'] },
+    { n: 26, t: ['The Shawnee tribe were a ', { a: 'nomadic', d: ['settled', 'farming', 'fortified', 'mound-building'] }, ' people that lived in ', { a: 'wigwam', d: ['longhouse', 'tipi', 'log cabin', 'rock'] }, ' shelters.'] },
+    { n: 27, t: ['The ', { a: 'Creek', d: ['Woodland', 'Shawnee', 'Mississippian', 'Archaic'] }, ' children were born into their mother’s clan. (Matrilineal)'] },
+    { n: 28, t: ['The ', { a: 'Cherokee', d: ['Woodland', 'Chickasaw', 'Shawnee', 'Mississippian'] }, ' government was red during war, and white during peace.'] }
+  ];
+
+  // Flatten to one card per blank.
+  var CARDS = [];
+  ITEMS.forEach(function (item) {
+    var slot = 0;
+    item.t.forEach(function (part, idx) {
+      if (typeof part === 'string') return;
+      var id = item.n + (countSlots(item) > 1 ? String.fromCharCode(97 + slot) : '');
+      CARDS.push({ id: id, item: item, partIdx: idx, answer: part.a, distractors: part.d, label: id });
+      slot++;
+    });
+  });
+  function countSlots(item) { return item.t.filter(function (p) { return typeof p !== 'string'; }).length; }
+
+  // ------------------------------------------------------------------
+  // Leitner boxes. A right answer on a due card moves it up one box and
+  // schedules it further out; a right answer well before it is due is
+  // practice only (no promotion, so back-to-back rounds cannot fake
+  // mastery); a miss drops it to box 0 (due now) and it returns within
+  // the same round. Box 5 is "mastered".
+  // ------------------------------------------------------------------
+  var MIN = 60 * 1000, HOUR = 60 * MIN, DAY = 24 * HOUR;
+  var INTERVALS = [0, 10 * MIN, 1 * HOUR, 8 * HOUR, 1 * DAY, 3 * DAY];
+  var BOX_NAMES = ['new', 'learning', 'learning', 'getting it', 'almost', 'mastered'];
+  var MAX_BOX = 5;
+  var ROUND_SIZE = 10;
+  var THINK_MS = 900;   // pause before the choices appear
+  var STORE_KEY = 'addie-ch15-16-cards-v1';
+
+  var state = load();
+
+  function freshState() {
+    var cards = {};
+    CARDS.forEach(function (c) { cards[c.id] = { box: 0, due: 0, seen: 0, right: 0, wrong: 0 }; });
+    return { v: 1, cards: cards, bestStreak: 0, rounds: 0 };
+  }
+  function load() {
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { s = null; }
+    if (!s || s.v !== 1 || !s.cards) s = freshState();
+    // Tolerate deck edits: add cards that are new, drop ones that are gone.
+    var fresh = freshState().cards;
+    Object.keys(fresh).forEach(function (id) { if (!s.cards[id]) s.cards[id] = fresh[id]; });
+    Object.keys(s.cards).forEach(function (id) { if (!fresh[id]) delete s.cards[id]; else if (typeof s.cards[id].seen !== 'number') s.cards[id].seen = 0; });
+    if (typeof s.bestStreak !== 'number') s.bestStreak = 0;
+    if (typeof s.rounds !== 'number') s.rounds = 0;
+    return s;
+  }
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* private mode: play on without saving */ }
+  }
+
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+  function counts() {
+    var now = Date.now(), due = 0, learning = 0, mastered = 0, newer = 0;
+    CARDS.forEach(function (c) {
+      var s = state.cards[c.id];
+      if (s.box >= MAX_BOX) mastered++;
+      else if (s.box === 0 && !s.right && !s.wrong) newer++;
+      else learning++;
+      if (s.box < MAX_BOX && s.due <= now) due++;
+      else if (s.box >= MAX_BOX && s.due <= now) due++;
+    });
+    return { due: due, learning: learning, mastered: mastered, fresh: newer };
+  }
+
+  // Every card in the order it is needed: due cards first (lowest box,
+  // longest overdue), then not-yet-due cards (lowest box, least recently
+  // seen) so early rounds rotate through the deck instead of repeating.
+  function rankedIds() {
+    var now = Date.now();
+    var all = CARDS.map(function (c) { return { id: c.id, s: state.cards[c.id], r: Math.random() }; });
+    var due = all.filter(function (x) { return x.s.due <= now; })
+      .sort(function (a, b) { return a.s.box - b.s.box || a.s.due - b.s.due || a.r - b.r; });
+    var rest = all.filter(function (x) { return x.s.due > now; })
+      .sort(function (a, b) { return a.s.box - b.s.box || a.s.seen - b.s.seen || a.r - b.r; });
+    return due.concat(rest).map(function (x) { return x.id; });
+  }
+  // A round is the ten most-needed cards, shuffled; there is always something to play.
+  function buildRound() {
+    return shuffle(rankedIds().slice(0, ROUND_SIZE));
+  }
+  // When a miss lands at the end of a round, pull in another card so the
+  // retry is never immediate (a retry with nothing in between is copying).
+  function borrowSpacer() {
+    var cands = rankedIds().filter(function (id) { return !round.missed[id] && round.queue.indexOf(id) < 0 && id !== round.current.id; });
+    var unseen = cands.filter(function (id) { return !round.shownIds[id]; });
+    return (unseen.length ? unseen : cands)[0] || null;
+  }
+
+  var round = null; // { queue, total, cleared, missed, missedOrder, firstTry, promoted, early, current, streak, choices, answered, shown, shownIds, timers }
+
+  function startRound() {
+    var ids = buildRound();
+    round = {
+      queue: ids, total: ids.length, cleared: 0, missed: {}, missedOrder: [],
+      firstTry: 0, promoted: 0, early: 0, current: null, streak: 0, answered: false, choices: [],
+      shown: 0, shownIds: {}, autoTimer: null, swapTimer: null, revealTimer: null, liveAt: 0
+    };
+    document.getElementById('card').classList.remove('leave', 'enter');
+    show('s-play');
+    document.getElementById('btn-quit').classList.remove('hidden');
+    updateStreak();
+    nextCard(true);
+  }
+
+  function nextCard(first) {
+    if (!round.queue.length) { finishRound(); return; }
+    var id = round.queue.shift();
+    round.current = CARDS.filter(function (c) { return c.id === id; })[0];
+    round.answered = false;
+    round.shown++;
+    round.shownIds[id] = true;
+    var s = state.cards[id];
+    var choices = shuffle(shuffle(round.current.distractors.slice()).slice(0, 3).concat([round.current.answer]));
+    round.choices = choices;
+
+    var card = document.getElementById('card');
+    var render = function () {
+      document.getElementById('card-num').textContent = 'Card ' + round.shown;
+      document.getElementById('card-box').textContent = round.missed[id] ? 'try again' : BOX_NAMES[s.box];
+      renderSentence(document.getElementById('q'), round.current.item, round.current.partIdx);
+      var opts = document.getElementById('opts');
+      opts.innerHTML = '';
+      choices.forEach(function (w, i) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'opt'; b.setAttribute('data-w', w);
+        b.innerHTML = '<span class="k">' + (i + 1) + '</span><span class="w"></span>';
+        b.querySelector('.w').textContent = w;
+        // After a miss the highlighted right answer stays live: tapping it moves on.
+        b.addEventListener('click', function () { if (round && round.answered) advance(); else answer(w, b); });
+        opts.appendChild(b);
+      });
+      // Think first: the choices fade in after a beat so she tries to recall
+      // the word before she can recognise it. Also swallows any late tap
+      // aimed at the previous card's "Next" button.
+      opts.classList.add('pending');
+      round.liveAt = Date.now() + THINK_MS;
+      clearTimeout(round.revealTimer);
+      round.revealTimer = setTimeout(function () { opts.classList.remove('pending'); }, THINK_MS);
+      var msg = document.getElementById('fb-msg');
+      msg.textContent = ''; msg.className = 'msg';
+      document.getElementById('btn-next').classList.add('hidden');
+      updateProgress();
+    };
+
+    if (first || reducedMotion()) { render(); return; }
+    card.classList.add('leave');
+    clearTimeout(round.swapTimer);
+    round.swapTimer = setTimeout(function () {
+      card.classList.remove('leave');
+      if (!round || round.current.id !== id) return; // round was quit mid-swap
+      render();
+      card.classList.add('enter');
+      // force reflow so the enter -> rest transition plays
+      void card.offsetWidth;
+      card.classList.remove('enter');
+    }, 220);
+  }
+
+  function renderSentence(el, item, blankIdx) {
+    el.innerHTML = '';
+    item.t.forEach(function (part, idx) {
+      if (typeof part === 'string') { el.appendChild(document.createTextNode(part)); return; }
+      var span = document.createElement('span');
+      if (idx === blankIdx) { span.className = 'blank'; span.id = 'blank'; }
+      else { span.className = 'filled'; span.textContent = part.a; }
+      el.appendChild(span);
+    });
+  }
+
+  function answer(word, btn) {
+    if (round.answered || Date.now() < round.liveAt) return;
+    round.answered = true;
+    var c = round.current, s = state.cards[c.id], now = Date.now();
+    var right = word === c.answer;
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('.opt'));
+    buttons.forEach(function (b) {
+      var isAns = b.getAttribute('data-w') === c.answer;
+      b.disabled = right || !isAns;
+      if (isAns) { b.classList.add('right'); b.setAttribute('aria-label', c.answer + ' — correct'); }
+      else if (b === btn) { b.setAttribute('aria-label', word + ' — wrong'); }
+      else b.classList.add('dim');
+    });
+    s.seen = now;
+    var blank = document.getElementById('blank');
+    var msg = document.getElementById('fb-msg');
+    var next = document.getElementById('btn-next');
+
+    if (right) {
+      var wasMissed = !!round.missed[c.id];
+      // "Early" = less than half of this box's wait has passed: it counts as
+      // practice, but the card keeps its box and its due time.
+      var early = !wasMissed && s.box > 0 && (s.due - now) > INTERVALS[s.box] / 2;
+      if (wasMissed) { s.box = 1; s.due = now + INTERVALS[1]; }
+      else if (early) { round.early++; round.firstTry++; }
+      else { s.box = Math.min(MAX_BOX, s.box + 1); s.due = now + INTERVALS[s.box]; round.promoted++; round.firstTry++; }
+      s.right++;
+      round.cleared++;
+      round.streak++;
+      if (round.streak > state.bestStreak) state.bestStreak = round.streak;
+      blank.textContent = c.answer; blank.classList.add('good');
+      msg.textContent = wasMissed ? 'Got it this time!' : praise(round.streak);
+      msg.className = 'msg good';
+      next.textContent = 'Next card';
+      next.classList.remove('hidden');
+      updateStreak(true);
+      burstFrom(btn, round.streak >= 5 ? 46 : 26);
+      save();
+      updateProgress();
+      round.autoTimer = setTimeout(function () { if (round && round.answered) advance(); }, wasMissed ? 1300 : 950);
+    } else {
+      s.box = 0; s.due = now; s.wrong++;
+      round.streak = 0;
+      if (!round.missed[c.id]) { round.missed[c.id] = true; round.missedOrder.push(c.id); }
+      // Bring it back after two other cards; if the round is ending, borrow
+      // cards so it never comes straight back.
+      while (round.queue.length < 2) {
+        var spare = borrowSpacer();
+        if (!spare) break;
+        round.queue.push(spare); round.total++;
+      }
+      round.queue.splice(Math.min(2, round.queue.length), 0, c.id);
+      btn.classList.add('wrong', 'shake');
+      blank.textContent = c.answer; blank.classList.add('badfix');
+      msg.textContent = 'Not quite — it’s “' + c.answer + '.” Tap it to go on.';
+      msg.className = 'msg bad';
+      next.textContent = 'Got it';
+      next.classList.remove('hidden');
+      updateStreak();
+      save();
+      updateProgress();
+    }
+  }
+
+  function advance() {
+    if (!round || !round.answered) return;
+    clearTimeout(round.autoTimer);
+    nextCard(false);
+  }
+
+  function praise(streak) {
+    if (streak >= 8) return 'On fire! ' + streak + ' in a row!';
+    if (streak >= 5) return streak + ' in a row!';
+    var w = ['Yes!', 'Nice!', 'Right!', 'Got it!', 'Correct!'];
+    return w[streak % w.length];
+  }
+
+  function updateProgress() {
+    var lbl = document.getElementById('p-lbl');
+    lbl.textContent = round.cleared + ' of ' + round.total + ' done';
+    var left = round.queue.length + (round.answered ? 0 : 1);
+    document.getElementById('p-left').textContent = left === 1 ? '1 card to go' : left + ' cards to go';
+    document.getElementById('p-fill').style.width = Math.round(100 * round.cleared / round.total) + '%';
+  }
+
+  function updateStreak(bump) {
+    var n = round ? round.streak : 0;
+    var el = document.getElementById('streak');
+    document.getElementById('streak-n').textContent = n;
+    el.classList.toggle('hidden', !round);
+    el.classList.toggle('hot', n >= 3);
+    if (bump) { el.classList.add('bump'); setTimeout(function () { el.classList.remove('bump'); }, 180); }
+  }
+
+  function finishRound() {
+    state.rounds++;
+    save();
+    var missedIds = round.missedOrder.slice();
+    var perfect = missedIds.length === 0;
+    document.getElementById('done-h').textContent = perfect ? 'Perfect round!' : (missedIds.length <= 2 ? 'Nice work!' : 'Round done!');
+    document.getElementById('done-tag').textContent = round.total + ' cards';
+    var sub = round.firstTry + ' of ' + round.total + ' right on the first try';
+    if (round.promoted === round.total) sub += '. Every card moved up a level.';
+    else if (round.promoted > 0) sub += '. ' + round.promoted + (round.promoted === 1 ? ' card' : ' cards') + ' moved up a level.';
+    if (round.early > 0) sub += ' ' + round.early + (round.early === 1 ? ' was' : ' were') + ' early practice — ' + (round.early === 1 ? 'it moves' : 'they move') + ' up once ' + (round.early === 1 ? 'it’s' : 'they’re') + ' due.';
+    if (!perfect) sub += ' Keep an eye on ' + (missedIds.length === 1 ? 'this one' : 'these') + ':';
+    document.getElementById('done-sub').textContent = sub;
+    var ul = document.getElementById('done-missed');
+    ul.innerHTML = '';
+    missedIds.forEach(function (id) {
+      var c = CARDS.filter(function (x) { return x.id === id; })[0];
+      var li = document.createElement('li');
+      var n = document.createElement('span'); n.className = 'n'; n.textContent = '#' + c.label;
+      li.appendChild(n);
+      c.item.t.forEach(function (part, idx) {
+        if (typeof part === 'string') { li.appendChild(document.createTextNode(part)); return; }
+        var span = document.createElement('span');
+        span.className = 'filled'; span.textContent = part.a;
+        if (idx !== c.partIdx) { span.style.color = 'inherit'; span.style.borderBottomColor = '#B9B3A3'; }
+        li.appendChild(span);
+      });
+      ul.appendChild(li);
+    });
+    renderMap('map-done', 'map-pct-2');
+    document.getElementById('done-note').textContent = dueNote();
+    if (perfect) burstCenter(120);
+    round = null;
+    document.getElementById('btn-quit').classList.add('hidden');
+    updateStreak();
+    show('s-done');
+  }
+
+  function dueNote() {
+    var k = counts();
+    if (k.mastered === CARDS.length) return 'Every card is mastered. Play a round anytime to keep them fresh.';
+    if (k.due > 0) return k.due + (k.due === 1 ? ' card is' : ' cards are') + ' due right now.';
+    var now = Date.now(), soonest = Infinity;
+    CARDS.forEach(function (c) { var d = state.cards[c.id].due; if (d > now && d < soonest) soonest = d; });
+    if (soonest === Infinity) return '';
+    return 'Nothing is due yet — the next cards come back ' + fmtIn(soonest - now) + '. You can still play early for practice.';
+  }
+  function fmtIn(ms) {
+    if (ms < 90 * MIN) return 'in about ' + Math.max(1, Math.round(ms / MIN)) + ' min';
+    if (ms < 20 * HOUR) return 'in about ' + Math.round(ms / HOUR) + ' hours';
+    var d = Math.round(ms / DAY);
+    return d <= 1 ? 'tomorrow' : 'in ' + d + ' days';
+  }
+
+  function renderMap(gridId, pctId) {
+    var grid = document.getElementById(gridId);
+    grid.innerHTML = '';
+    var mastered = 0;
+    CARDS.forEach(function (c) {
+      var s = state.cards[c.id];
+      var cell = document.createElement('i');
+      cell.className = 'cell b' + s.box;
+      cell.title = '#' + c.label + ' · ' + BOX_NAMES[s.box];
+      grid.appendChild(cell);
+      if (s.box >= MAX_BOX) mastered++;
+    });
+    document.getElementById(pctId).textContent = Math.round(100 * mastered / CARDS.length) + '% mastered';
+  }
+
+  function renderHome() {
+    var k = counts();
+    document.getElementById('t-due').textContent = k.due;
+    document.getElementById('t-learning').textContent = k.learning;
+    document.getElementById('t-mastered').textContent = k.mastered;
+    var play = document.getElementById('btn-play');
+    play.textContent = k.fresh === CARDS.length ? 'Start the deck' : 'Play a round';
+    var note = state.rounds === 0
+      ? 'Ten cards a round. Missed cards come back within the round until you get them.'
+      : dueNote() + (state.bestStreak >= 5 ? ' Best streak: ' + state.bestStreak + '.' : '');
+    document.getElementById('home-note').textContent = note;
+    renderMap('map-home', 'map-pct');
+  }
+
+  function renderSheet() {
+    var ol = document.getElementById('sheet-list');
+    ol.innerHTML = '';
+    ITEMS.forEach(function (item) {
+      var li = document.createElement('li');
+      item.t.forEach(function (part) {
+        if (typeof part === 'string') { li.appendChild(document.createTextNode(part)); return; }
+        var span = document.createElement('span'); span.className = 'filled'; span.textContent = part.a;
+        li.appendChild(span);
+      });
+      ol.appendChild(li);
+    });
+  }
+
+  function show(id) {
+    Array.prototype.forEach.call(document.querySelectorAll('.screen'), function (s) { s.classList.toggle('active', s.id === id); });
+    window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
+    if (id === 'home' || id === 's-home') renderHome();
+  }
+
+  function quitRound() {
+    if (!round) return;
+    clearTimeout(round.autoTimer); clearTimeout(round.swapTimer); clearTimeout(round.revealTimer);
+    document.getElementById('card').classList.remove('leave', 'enter');
+    round = null;
+    document.getElementById('btn-quit').classList.add('hidden');
+    updateStreak();
+    show('s-home');
+  }
+
+  function reducedMotion() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  // ---------- confetti ----------
+  var cvs = document.getElementById('fx'), ctx = cvs.getContext('2d'), parts = [], raf = null;
+  var COLORS = ['#F2C14E', '#E4716A', '#7FA9AE', '#FFFCF3', '#2E9A5B'];
+  function resize() {
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    cvs.width = Math.floor(window.innerWidth * dpr); cvs.height = Math.floor(window.innerHeight * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize); resize();
+  function burst(x, y, n, spread) {
+    if (reducedMotion()) return;
+    for (var i = 0; i < n; i++) {
+      parts.push({ x: x, y: y, vx: (Math.random() - .5) * spread, vy: -Math.random() * spread * .9 - 2,
+        g: .32, w: Math.random() * 6 + 4, h: Math.random() * 4 + 3, c: COLORS[i % COLORS.length],
+        a: 1, rot: Math.random() * Math.PI * 2, vr: (Math.random() - .5) * .35, fade: .012 + Math.random() * .012 });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function burstFrom(el, n) {
+    var r = el.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height / 2, n, 9);
+  }
+  function burstCenter(n) {
+    burst(window.innerWidth / 2, window.innerHeight * .35, n, 16);
+  }
+  function tick() {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    for (var i = parts.length - 1; i >= 0; i--) {
+      var p = parts[i];
+      p.vy += p.g; p.x += p.vx; p.y += p.vy; p.vx *= .99; p.rot += p.vr; p.a -= p.fade;
+      if (p.a <= 0 || p.y > window.innerHeight + 20) { parts.splice(i, 1); continue; }
+      ctx.save(); ctx.globalAlpha = Math.max(0, p.a); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+    }
+    raf = parts.length ? requestAnimationFrame(tick) : null;
+    if (!raf) ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  }
+
+  // ---------- wiring ----------
+  document.getElementById('btn-play').addEventListener('click', startRound);
+  document.getElementById('btn-play-2').addEventListener('click', startRound);
+  document.getElementById('btn-again').addEventListener('click', startRound);
+  document.getElementById('btn-next').addEventListener('click', advance);
+  document.getElementById('btn-quit').addEventListener('click', quitRound);
+  document.getElementById('btn-home').addEventListener('click', function () { show('s-home'); });
+  document.getElementById('btn-home-2').addEventListener('click', function () { show('s-home'); });
+  document.getElementById('btn-sheet').addEventListener('click', function () { renderSheet(); show('s-sheet'); });
+  document.getElementById('btn-reset').addEventListener('click', function () {
+    if (window.confirm('Start over? This clears all of Addie’s progress on these cards.')) {
+      state = freshState(); save(); renderHome();
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (!round || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target && e.target.closest && e.target.closest('#btn-quit')) return; // let Quit keep Enter/Space
+    if (!round.answered && Date.now() >= round.liveAt && e.key >= '1' && e.key <= '4') {
+      var b = document.querySelectorAll('.opt')[Number(e.key) - 1];
+      if (b) { e.preventDefault(); b.click(); }
+    } else if (round.answered && (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight')) {
+      e.preventDefault(); advance();
+    }
+  });
+
+  renderHome();
+  // Read-only view for automated checks; the answers are in this file anyway.
+  window.__addie = { cards: CARDS, get round() { return round; }, get state() { return state; }, intervals: INTERVALS };
+})();
+</script>
+</body>
+</html>
