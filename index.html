@@ -261,6 +261,15 @@
   .result-card { padding-bottom: 22px; }
   .result-card h2 { font-family: var(--font-ui); margin: 6px 0 4px; font-size: 1.9rem; font-weight: 600; color: var(--ink); line-height: 1.1; }
   .result-card .sub { margin: 0; color: var(--ink-soft); font-size: 1.02rem; }
+  .score { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 8px 0 4px; }
+  .score-n { font-family: var(--font-ui); font-size: 2.7rem; font-weight: 700; color: var(--ink); line-height: 1; font-variant-numeric: tabular-nums; }
+  .score-l { font-size: .95rem; font-weight: 600; color: var(--ink-soft); }
+  .score-best { margin-left: auto; font-size: .9rem; font-weight: 600; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .score.new .score-n { color: var(--gold-deep); }
+  .score .badge { background: var(--gold); color: var(--gold-ink); border-radius: 999px; padding: 4px 11px; font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  .score-b { margin: 0 0 6px; font-size: .9rem; color: var(--ink-soft); }
+  .hs { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(242,193,78,.45); background: rgba(242,193,78,.1); color: var(--mist); font-size: .9rem; font-weight: 500; }
+  .hs b { color: var(--gold); font-weight: 700; font-variant-numeric: tabular-nums; }
   .missed { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
   .missed li { font-family: var(--font-sheet); font-size: 1.08rem; line-height: 1.35; color: var(--ink); padding-left: 12px; border-left: 3px solid var(--rule-red); }
   .missed .filled { font-family: var(--font-hand); color: var(--good-ink); font-size: 1.2em; padding: 0 .25em; border-bottom: 2px solid var(--good); }
@@ -322,6 +331,7 @@
       <div class="tile"><b id="t-mastered">0</b><span>Mastered</span></div>
     </div>
     <button class="btn btn-gold btn-big" id="btn-play" type="button">Play a round</button>
+    <div class="hs hidden" id="home-hs">High score <b id="home-hs-n">0</b></div>
     <p class="note" id="home-note"></p>
     <div class="map">
       <div class="lbl"><span>Your 32 cards</span><span id="map-pct">0% mastered</span></div>
@@ -359,6 +369,12 @@
       <div class="card result-card">
         <div class="card-head"><span>Round done</span><span class="box-tag" id="done-tag"></span></div>
         <h2 id="done-h">Round done!</h2>
+        <div class="score" id="done-score-wrap">
+          <span class="score-n" id="done-score">0</span><span class="score-l">points</span>
+          <span class="badge hidden" id="done-new">New high score</span>
+          <span class="score-best" id="done-best"></span>
+        </div>
+        <p class="score-b" id="done-breakdown"></p>
         <p class="sub" id="done-sub"></p>
         <ul class="missed" id="done-missed"></ul>
       </div>
@@ -460,6 +476,11 @@
   var MAX_BOX = 5;
   var ROUND_SIZE = 10;
   var THINK_MS = 900;   // pause before the choices appear
+  // Scoring: 100 for a card right on the first try, plus 10 for every card
+  // already in the streak (up to +50), 25 for getting a card right after a
+  // miss, and 200 for a round with no misses. Points are about the round,
+  // not the boxes, so practising early still scores.
+  var PTS_RIGHT = 100, PTS_STREAK = 10, PTS_STREAK_CAP = 50, PTS_COMEBACK = 25, PTS_PERFECT = 200;
   var STORE_KEY = 'addie-ch15-16-cards-v1';
 
   var state = load();
@@ -467,7 +488,7 @@
   function freshState() {
     var cards = {};
     CARDS.forEach(function (c) { cards[c.id] = { box: 0, due: 0, seen: 0, right: 0, wrong: 0 }; });
-    return { v: 1, cards: cards, bestStreak: 0, rounds: 0 };
+    return { v: 1, cards: cards, bestStreak: 0, rounds: 0, highScore: 0 };
   }
   function load() {
     var s = null;
@@ -479,6 +500,7 @@
     Object.keys(s.cards).forEach(function (id) { if (!fresh[id]) delete s.cards[id]; else if (typeof s.cards[id].seen !== 'number') s.cards[id].seen = 0; });
     if (typeof s.bestStreak !== 'number') s.bestStreak = 0;
     if (typeof s.rounds !== 'number') s.rounds = 0;
+    if (typeof s.highScore !== 'number') s.highScore = 0;
     return s;
   }
   function save() {
@@ -536,6 +558,7 @@
     round = {
       queue: ids, total: ids.length, cleared: 0, missed: {}, missedOrder: [],
       firstTry: 0, promoted: 0, early: 0, current: null, streak: 0, answered: false, choices: [],
+      score: 0, streakPts: 0, comebackPts: 0,
       shown: 0, shownIds: {}, autoTimer: null, swapTimer: null, revealTimer: null, liveAt: 0
     };
     document.getElementById('card').classList.remove('leave', 'enter');
@@ -640,8 +663,15 @@
       round.cleared++;
       round.streak++;
       if (round.streak > state.bestStreak) state.bestStreak = round.streak;
+      var pts;
+      if (wasMissed) { pts = PTS_COMEBACK; round.comebackPts += pts; }
+      else {
+        var bonus = Math.min(PTS_STREAK_CAP, PTS_STREAK * (round.streak - 1));
+        pts = PTS_RIGHT + bonus; round.streakPts += bonus;
+      }
+      round.score += pts;
       blank.textContent = c.answer; blank.classList.add('good');
-      msg.textContent = wasMissed ? 'Got it this time!' : praise(round.streak);
+      msg.textContent = (wasMissed ? 'Got it this time!' : praise(round.streak)) + ' +' + pts;
       msg.className = 'msg good';
       next.textContent = 'Next card';
       next.classList.remove('hidden');
@@ -709,6 +739,19 @@
     save();
     var missedIds = round.missedOrder.slice();
     var perfect = missedIds.length === 0;
+    if (perfect) round.score += PTS_PERFECT;
+    var newHigh = round.score > state.highScore;
+    if (newHigh) state.highScore = round.score;
+    save();
+    document.getElementById('done-score').textContent = fmtNum(round.score);
+    document.getElementById('done-score-wrap').classList.toggle('new', newHigh);
+    document.getElementById('done-new').classList.toggle('hidden', !newHigh);
+    document.getElementById('done-best').textContent = newHigh ? '' : 'Best: ' + fmtNum(state.highScore);
+    var parts = [round.firstTry + ' first try × ' + PTS_RIGHT];
+    if (round.streakPts) parts.push('streak +' + fmtNum(round.streakPts));
+    if (round.comebackPts) parts.push('comebacks +' + fmtNum(round.comebackPts));
+    if (perfect) parts.push('perfect round +' + PTS_PERFECT);
+    document.getElementById('done-breakdown').textContent = parts.join(' · ');
     document.getElementById('done-h').textContent = perfect ? 'Perfect round!' : (missedIds.length <= 2 ? 'Nice work!' : 'Round done!');
     document.getElementById('done-tag').textContent = round.total + ' cards';
     var sub = round.firstTry + ' of ' + round.total + ' right on the first try';
@@ -735,7 +778,7 @@
     });
     renderMap('map-done', 'map-pct-2');
     document.getElementById('done-note').textContent = dueNote();
-    if (perfect) burstCenter(120);
+    if (newHigh) burstCenter(160); else if (perfect) burstCenter(120);
     round = null;
     document.getElementById('btn-quit').classList.add('hidden');
     updateStreak();
@@ -751,6 +794,7 @@
     if (soonest === Infinity) return '';
     return 'Nothing is due yet — the next cards come back ' + fmtIn(soonest - now) + '. You can still play early for practice.';
   }
+  function fmtNum(n) { return n.toLocaleString('en-US'); }
   function fmtIn(ms) {
     if (ms < 90 * MIN) return 'in about ' + Math.max(1, Math.round(ms / MIN)) + ' min';
     if (ms < 20 * HOUR) return 'in about ' + Math.round(ms / HOUR) + ' hours';
@@ -784,6 +828,8 @@
       ? 'Ten cards a round. Missed cards come back within the round until you get them.'
       : dueNote() + (state.bestStreak >= 5 ? ' Best streak: ' + state.bestStreak + '.' : '');
     document.getElementById('home-note').textContent = note;
+    document.getElementById('home-hs').classList.toggle('hidden', state.highScore === 0);
+    document.getElementById('home-hs-n').textContent = fmtNum(state.highScore);
     renderMap('map-home', 'map-pct');
   }
 
@@ -869,8 +915,9 @@
   document.getElementById('btn-home-2').addEventListener('click', function () { show('s-home'); });
   document.getElementById('btn-sheet').addEventListener('click', function () { renderSheet(); show('s-sheet'); });
   document.getElementById('btn-reset').addEventListener('click', function () {
-    if (window.confirm('Start over? This clears all of Addie’s progress on these cards.')) {
-      state = freshState(); save(); renderHome();
+    if (window.confirm('Start over? This clears all of Addie’s card progress. The high score stays.')) {
+      var keep = state.highScore;
+      state = freshState(); state.highScore = keep; save(); renderHome();
     }
   });
   document.addEventListener('keydown', function (e) {
