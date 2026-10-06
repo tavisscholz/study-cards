@@ -233,6 +233,20 @@
   .hero { display: flex; flex-direction: column; gap: 10px; padding-block: 8px 0; }
   .hero h2 { margin: 0; font-size: 2.1rem; font-weight: 600; line-height: 1.05; color: #fff; text-wrap: balance; }
   .hero p { margin: 0; max-width: 46ch; color: var(--mist); font-size: 1.02rem; }
+  .levels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 359px) { .levels { grid-template-columns: 1fr; } }
+  .lvl {
+    position: relative; text-align: left; min-height: 44px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14); border-radius: 12px;
+    padding: 12px 14px 12px 18px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; color: var(--mist);
+  }
+  .lvl::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 5px; border-radius: 0 4px 4px 0; background: rgba(255,255,255,.22); }
+  .lvl-n { font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--mist-dim); }
+  .lvl-name { font-weight: 600; font-size: 1.05rem; color: #fff; line-height: 1.15; }
+  .lvl-sub { font-size: .8rem; color: var(--mist-dim); font-variant-numeric: tabular-nums; }
+  .lvl.active { background: rgba(242,193,78,.14); border-color: rgba(242,193,78,.6); }
+  .lvl.active::before { background: var(--gold); }
+  .lvl.active .lvl-n { color: var(--gold); }
   .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .tile {
     background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
@@ -307,7 +321,7 @@
 <div class="app">
   <header class="top">
     <div class="brand">
-      <span class="eyebrow">Ch 15–16 Study Guide</span>
+      <span class="eyebrow" id="eyebrow">Ch 15–16 Study Guide</span>
       <h1>Addie's Cards</h1>
     </div>
     <div class="actions-top">
@@ -321,9 +335,10 @@
 
   <!-- HOME -->
   <section class="screen active" id="s-home" aria-labelledby="home-h">
+    <div class="levels" id="levels" role="tablist" aria-label="Levels"></div>
     <div class="hero">
       <h2 id="home-h">Fill in the blank, one card at a time.</h2>
-      <p>All 32 blanks from your study guide. Get a card right and it comes back later, spaced further out each time. Miss one and it comes right back until you've got it.</p>
+      <p id="home-p">All 32 blanks from your study guide. Get a card right and it comes back later, spaced further out each time. Miss one and it comes right back until you've got it.</p>
     </div>
     <div class="tiles">
       <div class="tile due"><b id="t-due">0</b><span>Due now</span></div>
@@ -334,7 +349,7 @@
     <div class="hs hidden" id="home-hs">High score <b id="home-hs-n">0</b></div>
     <p class="note" id="home-note"></p>
     <div class="map">
-      <div class="lbl"><span>Your 32 cards</span><span id="map-pct">0% mastered</span></div>
+      <div class="lbl"><span id="map-lbl">Your 32 cards</span><span id="map-pct">0% mastered</span></div>
       <div class="cells" id="map-home" aria-hidden="true"></div>
       <div class="legend"><span><i style="background:var(--b0)"></i>New</span><span><i style="background:var(--b1)"></i>Learning</span><span><i style="background:var(--b3)"></i>Getting it</span><span><i style="background:var(--b4)"></i>Almost</span><span><i class="b5"></i>Mastered</span></div>
     </div>
@@ -380,7 +395,7 @@
       </div>
     </div>
     <div class="map">
-      <div class="lbl"><span>Your 32 cards</span><span id="map-pct-2">0% mastered</span></div>
+      <div class="lbl"><span id="map-lbl-2">Your 32 cards</span><span id="map-pct-2">0% mastered</span></div>
       <div class="cells" id="map-done" aria-hidden="true"></div>
     </div>
     <p class="note" id="done-note"></p>
@@ -419,7 +434,7 @@
     return extra ? pool.concat(extra) : pool;
   }
 
-  var ITEMS = [
+  var ITEMS_1 = [
     { n: 1,  t: ['The point that something begins is called the ', { a: 'origin', d: ['plaza', 'chiefdom', 'trade', 'settlement'] }, '.'] },
     { n: 2,  t: ['Native, or original means something is ', { a: 'indigenous', d: ['nomadic', 'fortified', 'innovative', 'foreign'] }, ' to an area.'] },
     { n: 3,  t: ['If a town or village, like the Mississippian people lived in, is protected, it is ', { a: 'fortified', d: ['indigenous', 'innovative', 'nomadic', 'abandoned'] }, '.'] },
@@ -450,18 +465,65 @@
     { n: 28, t: ['The ', { a: 'Cherokee', d: ['Woodland', 'Chickasaw', 'Shawnee', 'Mississippian'] }, ' government was red during war, and white during peace.'] }
   ];
 
-  // Flatten to one card per blank.
-  var CARDS = [];
-  ITEMS.forEach(function (item) {
-    var slot = 0;
-    item.t.forEach(function (part, idx) {
-      if (typeof part === 'string') return;
-      var id = item.n + (countSlots(item) > 1 ? String.fromCharCode(97 + slot) : '');
-      CARDS.push({ id: id, item: item, partIdx: idx, answer: part.a, distractors: part.d, label: id });
-      slot++;
-    });
-  });
+  // Level 2: Ch 17, 18 & 19 — the Cumberland Gap, Watauga and Fort
+  // Nashborough. Spelling follows the textbook (Watauga, Transylvania,
+  // smallpox, militia); wording follows the worksheet.
+  var ITEMS_2 = [
+    { n: 1,  t: [{ a: 'Daniel Boone', d: ['John Sevier', 'James Robertson', 'John Donelson', 'William Bean'] }, ' was hired to extend the Cumberland Gap into Eastern Kentucky.'] },
+    { n: 2,  t: ['The ', { a: 'Proclamation of 1763', d: ['Watauga Compact', 'Cumberland Compact', 'Transylvania Purchase', 'Watauga Association'] }, ' was made to help make peace with the Indians after the French and Indian War.'] },
+    { n: 3,  t: [{ a: '300,000', d: ['3,000', '30,000', '3,000,000', '50,000'] }, ' people passed thru the Wilderness Road and Cumberland Gap during the “Great Migration.”'] },
+    { n: 4,  t: ['The Proclamation of 1763 ', { a: 'angered', d: ['pleased', 'protected', 'paid', 'freed'] }, ' colonists that wanted to settle new lands west of the boundary line.'] },
+    { n: 5,  t: ['A natural pass thru the mountains in TN, KY, and VA is known as the ', { a: 'Cumberland Gap', d: ['Wilderness Road', 'Watauga Valley', 'Cumberland Settlements', 'Great Migration'] }, '.'] },
+    { n: 6,  t: ['Also known as the “Passage Way to the West,” or “Lifeline to the West,” the ', { a: 'Wilderness Road', d: ['Cumberland Gap', 'Watauga Valley', 'Transylvania Purchase', 'Great Migration'] }, ' was vital to new commerce and the growth of the young United States.'] },
+    { n: 7,  t: ['Anything to do with trade or business is known as ', { a: 'commerce', d: ['compact', 'lease', 'parcel', 'siege'] }, '.'] },
+    { n: 8,  t: ['Settlers of the Watauga Valley leased land from the ', { a: 'Cherokee', d: ['British', 'Shawnee', 'Creek', 'Chickasaw'] }, '.'] },
+    { n: 9,  t: [{ a: 'Dragging Canoe', d: ['Nancy Ward', 'John Sevier', 'Daniel Boone', 'James Robertson'] }, ' was a war chief that fought both settlers and British soldiers even tho the British made an alliance with him.'] },
+    { n: 10, t: ['The ', { a: 'Watauga Compact', d: ['Cumberland Compact', 'Proclamation of 1763', 'Transylvania Purchase', 'Watauga Settlement'] }, ' a system of government and laws founded by the Watauga Association.'] },
+    { n: 11, t: [{ a: 'John Sevier', d: ['James Robertson', 'Daniel Boone', 'John Donelson', 'William Bean'] }, ' is known as the “Father of Tennessee,” and was vitally important to the defense of Fort Watauga.'] },
+    { n: 12, t: [{ a: 'Watauga Settlement', d: ['Fort Nashborough', 'Cumberland Settlements', 'Eastern Kentucky', 'Transylvania'] }, ' was founded by settlers that traveled thru the Cumberland Gap and Wilderness Road in 1769.'] },
+    { n: 13, t: ['The ', { a: 'Watauga Association', d: ['Cumberland Compact', 'Proclamation of 1763', 'Transylvania Purchase', 'Great Migration'] }, ' was the government system set up by the settlers in the Watauga Valley, and was the first self-government group ever in the British Colonies.'] },
+    { n: 14, t: [{ a: 'James Robertson', d: ['John Donelson', 'Daniel Boone', 'Dragging Canoe', 'Nancy Ward'] }, ' and ', { a: 'William Bean', d: ['John Donelson', 'Daniel Boone', 'Dragging Canoe', 'Nancy Ward'] }, ' were important early settlers of the Watauga Settlement.'] },
+    { n: 15, t: ['To rent or pay money to live on someone else’s property is know as having a ', { a: 'lease', d: ['parcel', 'compact', 'siege', 'commerce'] }, '.'] },
+    { n: 16, t: ['An attack or closing in on someone or a group of people is known as a ', { a: 'siege', d: ['lease', 'compact', 'parcel', 'migration'] }, '.'] },
+    { n: 17, t: ['The American Revolution began in the year ', { a: '1775', d: ['1763', '1769', '1779', '1781'] }, '.'] },
+    { n: 18, t: [{ a: 'Nancy Ward', d: ['Dragging Canoe', 'John Sevier', 'James Robertson', 'John Donelson'] }, ' was a Cherokee maiden that married a white man, and helped to bring peace between the settlers and the Cherokee.'] },
+    { n: 19, t: ['An ', { a: 'acre', d: ['estate', 'orchard', 'inch', 'island'] }, ' is a piece of land = to 4,840 square yards.'] },
+    { n: 20, t: [{ a: 'James Robertson', d: ['John Donelson', 'John Sevier', 'Daniel Boone', 'William Bean'] }, ' founded Fort Nashborough in 1779.'] },
+    { n: 21, t: ['If something is able to support healthy growth of many things including plants, it is ', { a: 'fertile', d: ['barren', 'rocky', 'fortified', 'aghast'] }, '.'] },
+    { n: 22, t: ['The women of Fort Nashborough helped defeat the Cherokee when they released the ', { a: 'dogs', d: ['horses', 'cattle', 'chickens', 'prisoners'] }, ' of the fort.'] },
+    { n: 23, t: ['When 20 million acres of land was purchased for $50,000, the treaty was known as the ', { a: 'Transylvania Purchase', d: ['Louisiana Purchase', 'Watauga Compact', 'Cumberland Compact', 'Proclamation of 1763'] }, '.'] },
+    { n: 24, t: ['If you have a partial amount or quantity of something, you have a ', { a: 'parcel', d: ['lease', 'compact', 'siege', 'militia'] }, '.'] },
+    { n: 25, t: [{ a: 'John Donelson', d: ['James Robertson', 'John Sevier', 'Daniel Boone', 'William Bean'] }, ' was a land surveyor that brought 30 families to Fort Nashborough in 1780.'] },
+    { n: 26, t: [{ a: 'aghast', d: ['fertile', 'angered', 'vital', 'natural'] }, ' is to be shocked or dismayed.'] },
+    { n: 27, t: ['The governing document of the Cumberland Settlements was the ', { a: 'Cumberland Compact', d: ['Watauga Compact', 'Proclamation of 1763', 'Transylvania Purchase', 'Watauga Association'] }, '.'] },
+    { n: 28, t: ['An agreement or contract between two parties is a ', { a: 'compact', d: ['parcel', 'siege', 'commerce', 'militia'] }, '.'] },
+    { n: 29, t: [{ a: 'Cold weather', d: ['Hot weather', 'A drought', 'British soldiers', 'Wild bears'] }, ', ', { a: 'rough waters', d: ['a forest fire', 'a drought', 'British soldiers', 'a broken wagon'] }, ', ', { a: 'smallpox', d: ['a forest fire', 'British soldiers', 'a drought', 'wild bears'] }, ', and ', { a: 'an Indian attack', d: ['a British attack', 'a bear attack', 'a forest fire', 'a drought'] }, ' were all obstacles that Donelson’s party encountered on the trek to Fort Nashborough.'] },
+    { n: 30, t: ['European settlers defeated Dragging Canoe and the Cherokee on April 2, 1781 at ', { a: 'Battle of the Bluffs', d: ['Battle of Fort Watauga', 'Battle of Kings Mountain', 'Battle of the Gap', 'Battle of Watauga Valley'] }, '.'] },
+    { n: 31, t: [{ a: 'Smallpox', d: ['Measles', 'The flu', 'Malaria', 'Chicken pox'] }, ' is a disease that includes high fever and severe sores.'] },
+    { n: 32, t: [{ a: 'Militia', d: ['Association', 'Settlement', 'Compact', 'Commerce'] }, ' is a group of citizens that organize themselves for military service.'] }
+  ];
+
+  var LEVELS = [
+    { id: 'ch15-16', n: 1, name: 'Ch 15–16', items: ITEMS_1 },
+    { id: 'ch17-19', n: 2, name: 'Ch 17, 18 & 19', items: ITEMS_2 }
+  ];
+
+  // Flatten each level to one card per blank.
   function countSlots(item) { return item.t.filter(function (p) { return typeof p !== 'string'; }).length; }
+  function buildCards(items) {
+    var cards = [];
+    items.forEach(function (item) {
+      var slot = 0;
+      item.t.forEach(function (part, idx) {
+        if (typeof part === 'string') return;
+        var id = item.n + (countSlots(item) > 1 ? String.fromCharCode(97 + slot) : '');
+        cards.push({ id: id, item: item, partIdx: idx, answer: part.a, distractors: part.d, label: id });
+        slot++;
+      });
+    });
+    return cards;
+  }
+  LEVELS.forEach(function (l) { l.cards = buildCards(l.items); });
 
   // ------------------------------------------------------------------
   // Leitner boxes. A right answer on a due card moves it up one box and
@@ -481,30 +543,52 @@
   // miss, and 200 for a round with no misses. Points are about the round,
   // not the boxes, so practising early still scores.
   var PTS_RIGHT = 100, PTS_STREAK = 10, PTS_STREAK_CAP = 50, PTS_COMEBACK = 25, PTS_PERFECT = 200;
-  var STORE_KEY = 'addie-ch15-16-cards-v1';
+  var STORE_KEY = 'addie-cards-v2';
+  var OLD_KEY = 'addie-ch15-16-cards-v1'; // the single-deck save, migrated into Level 1
 
-  var state = load();
+  // ALL holds every level's progress; LEVEL/CARDS/ITEMS/state point at the
+  // level being played and are swapped by setLevel().
+  var ALL = loadAll();
+  var LEVEL, CARDS, ITEMS, state;
+  setLevel(ALL.current);
 
-  function freshState() {
+  function freshLevelState(level) {
     var cards = {};
-    CARDS.forEach(function (c) { cards[c.id] = { box: 0, due: 0, seen: 0, right: 0, wrong: 0 }; });
-    return { v: 1, cards: cards, bestStreak: 0, rounds: 0, highScore: 0 };
+    level.cards.forEach(function (c) { cards[c.id] = { box: 0, due: 0, seen: 0, right: 0, wrong: 0 }; });
+    return { cards: cards, bestStreak: 0, rounds: 0, highScore: 0 };
   }
-  function load() {
-    var s = null;
-    try { s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { s = null; }
-    if (!s || s.v !== 1 || !s.cards) s = freshState();
+  function normalizeLevel(level, s) {
+    var fresh = freshLevelState(level);
+    if (!s || typeof s !== 'object' || !s.cards) return fresh;
     // Tolerate deck edits: add cards that are new, drop ones that are gone.
-    var fresh = freshState().cards;
-    Object.keys(fresh).forEach(function (id) { if (!s.cards[id]) s.cards[id] = fresh[id]; });
-    Object.keys(s.cards).forEach(function (id) { if (!fresh[id]) delete s.cards[id]; else if (typeof s.cards[id].seen !== 'number') s.cards[id].seen = 0; });
-    if (typeof s.bestStreak !== 'number') s.bestStreak = 0;
-    if (typeof s.rounds !== 'number') s.rounds = 0;
-    if (typeof s.highScore !== 'number') s.highScore = 0;
+    Object.keys(fresh.cards).forEach(function (id) { if (!s.cards[id]) s.cards[id] = fresh.cards[id]; });
+    Object.keys(s.cards).forEach(function (id) { if (!fresh.cards[id]) delete s.cards[id]; else if (typeof s.cards[id].seen !== 'number') s.cards[id].seen = 0; });
+    ['bestStreak', 'rounds', 'highScore'].forEach(function (k) { if (typeof s[k] !== 'number') s[k] = 0; });
     return s;
   }
+  function loadAll() {
+    var a = null;
+    try { a = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { a = null; }
+    if (!a || a.v !== 2 || !a.levels) {
+      a = { v: 2, current: LEVELS[0].id, levels: {} };
+      var old = null;
+      try { old = JSON.parse(localStorage.getItem(OLD_KEY) || 'null'); } catch (e) { old = null; }
+      if (old && old.v === 1 && old.cards) a.levels[LEVELS[0].id] = { cards: old.cards, bestStreak: old.bestStreak, rounds: old.rounds, highScore: old.highScore };
+    }
+    LEVELS.forEach(function (l) { a.levels[l.id] = normalizeLevel(l, a.levels[l.id]); });
+    if (!LEVELS.some(function (l) { return l.id === a.current; })) a.current = LEVELS[0].id;
+    return a;
+  }
+  function setLevel(id) {
+    LEVEL = LEVELS.filter(function (l) { return l.id === id; })[0] || LEVELS[0];
+    CARDS = LEVEL.cards; ITEMS = LEVEL.items;
+    state = ALL.levels[LEVEL.id];
+    ALL.current = LEVEL.id;
+    document.getElementById('eyebrow').textContent = LEVEL.name + ' Study Guide';
+    document.getElementById('sheet-h').textContent = LEVEL.name + ' Study Guide';
+  }
   function save() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* private mode: play on without saving */ }
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(ALL)); } catch (e) { /* private mode: play on without saving */ }
   }
 
   function shuffle(arr) {
@@ -815,15 +899,39 @@
       if (s.box >= MAX_BOX) mastered++;
     });
     document.getElementById(pctId).textContent = Math.round(100 * mastered / CARDS.length) + '% mastered';
+    document.getElementById(gridId === 'map-home' ? 'map-lbl' : 'map-lbl-2').textContent = 'Your ' + CARDS.length + ' cards';
   }
 
+  function levelSummary(level) {
+    var s = ALL.levels[level.id], mastered = 0, touched = 0;
+    level.cards.forEach(function (c) { var cs = s.cards[c.id]; if (cs.box >= MAX_BOX) mastered++; if (cs.right || cs.wrong) touched++; });
+    if (!touched) return level.cards.length + ' cards · new';
+    return Math.round(100 * mastered / level.cards.length) + '% mastered';
+  }
+  function renderLevels() {
+    var wrap = document.getElementById('levels');
+    wrap.innerHTML = '';
+    LEVELS.forEach(function (l) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'lvl' + (l.id === LEVEL.id ? ' active' : '');
+      b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', l.id === LEVEL.id ? 'true' : 'false');
+      b.innerHTML = '<span class="lvl-n"></span><span class="lvl-name"></span><span class="lvl-sub"></span>';
+      b.querySelector('.lvl-n').textContent = 'Level ' + l.n;
+      b.querySelector('.lvl-name').textContent = l.name;
+      b.querySelector('.lvl-sub').textContent = levelSummary(l);
+      b.addEventListener('click', function () { if (l.id !== LEVEL.id) { setLevel(l.id); save(); renderHome(); } });
+      wrap.appendChild(b);
+    });
+  }
   function renderHome() {
+    renderLevels();
+    document.getElementById('home-p').textContent = 'All ' + CARDS.length + ' blanks from the ' + LEVEL.name + ' study guide. Get a card right and it comes back later, spaced further out each time. Miss one and it comes right back until you’ve got it.';
     var k = counts();
     document.getElementById('t-due').textContent = k.due;
     document.getElementById('t-learning').textContent = k.learning;
     document.getElementById('t-mastered').textContent = k.mastered;
     var play = document.getElementById('btn-play');
-    play.textContent = k.fresh === CARDS.length ? 'Start the deck' : 'Play a round';
+    play.textContent = k.fresh === CARDS.length ? 'Start Level ' + LEVEL.n : 'Play a round';
     var note = state.rounds === 0
       ? 'Ten cards a round. Missed cards come back within the round until you get them.'
       : dueNote() + (state.bestStreak >= 5 ? ' Best streak: ' + state.bestStreak + '.' : '');
@@ -915,9 +1023,10 @@
   document.getElementById('btn-home-2').addEventListener('click', function () { show('s-home'); });
   document.getElementById('btn-sheet').addEventListener('click', function () { renderSheet(); show('s-sheet'); });
   document.getElementById('btn-reset').addEventListener('click', function () {
-    if (window.confirm('Start over? This clears all of Addie’s card progress. The high score stays.')) {
+    if (window.confirm('Start over on Level ' + LEVEL.n + '? This clears Addie’s card progress for this level. The high score stays.')) {
       var keep = state.highScore;
-      state = freshState(); state.highScore = keep; save(); renderHome();
+      ALL.levels[LEVEL.id] = freshLevelState(LEVEL); ALL.levels[LEVEL.id].highScore = keep;
+      state = ALL.levels[LEVEL.id]; save(); renderHome();
     }
   });
   document.addEventListener('keydown', function (e) {
@@ -933,7 +1042,11 @@
 
   renderHome();
   // Read-only view for automated checks; the answers are in this file anyway.
-  window.__addie = { cards: CARDS, get round() { return round; }, get state() { return state; }, intervals: INTERVALS };
+  window.__addie = {
+    get cards() { return CARDS; }, get round() { return round; }, get state() { return state; }, get all() { return ALL; },
+    get level() { return LEVEL; }, levels: LEVELS, intervals: INTERVALS, save: save,
+    setLevel: function (id) { setLevel(id); save(); renderHome(); }
+  };
 })();
 </script>
 </body>
