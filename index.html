@@ -233,8 +233,7 @@
   .hero { display: flex; flex-direction: column; gap: 10px; padding-block: 8px 0; }
   .hero h2 { margin: 0; font-size: 2.1rem; font-weight: 600; line-height: 1.05; color: #fff; text-wrap: balance; }
   .hero p { margin: 0; max-width: 46ch; color: var(--mist); font-size: 1.02rem; }
-  .levels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  @media (max-width: 359px) { .levels { grid-template-columns: 1fr; } }
+  .levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
   .lvl {
     position: relative; text-align: left; min-height: 44px;
     background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14); border-radius: 12px;
@@ -503,9 +502,51 @@
     { n: 32, t: [{ a: 'Militia', d: ['Association', 'Settlement', 'Compact', 'Commerce'] }, ' is a group of citizens that organize themselves for military service.'] }
   ];
 
+  // Level 3: Ch 20–22 — the Overmountain Men, the State of Franklin and
+  // statehood. Spelling follows the textbook (delegate, legislature,
+  // Cherokee); wording follows the worksheet.
+  var ITEMS_3 = [
+    { n: 1,  t: ['The ', { a: 'Overmountain Territories', d: ['Watauga Valley', 'Cumberland Gap', 'Wilderness Road', 'Great Valley'] }, ' was the land on the western slope of the Appalachian Mountains.'] },
+    { n: 2,  t: ['Those who supported British rule were known as ', { a: 'Loyalists', d: ['Patriots', 'Delegates', 'Overmountain Men', 'Federalists'] }, '.'] },
+    { n: 3,  t: ['The ', { a: 'Overmountain Men', d: ['Loyalists', 'Minutemen', 'British troops', 'Delegates'] }, ' were made up of men from Virginia, North Carolina, and Tennessee.'] },
+    { n: 4,  t: [{ a: 'Lord Cornwallis', d: ['John Sevier', 'William Blount', 'Benjamin Franklin', 'George Washington'] }, ' was the commanding officer of the entire British army.'] },
+    { n: 5,  t: ['The ', { a: 'Battle of Kings Mountain', d: ['Battle of the Bluffs', 'Battle of Fort Watauga', 'Battle of Yorktown', 'Battle of Bunker Hill'] }, ' barely lasted an hour, and was a humiliating defeat to the British troops.'] },
+    { n: 6,  t: ['The surprising victory by the Overmountain Men boosted the ', { a: 'morale', d: ['mettle', 'debt', 'salary', 'population'] }, ' of the Continental Army, and that of all patriots.'] },
+    { n: 7,  t: ['The ability to cope well with difficulties is known as showing one’s ', { a: 'mettle', d: ['morale', 'compromise', 'debate', 'term'] }, '.'] },
+    { n: 8,  t: [{ a: 'North Carolina', d: ['Virginia', 'South Carolina', 'Georgia', 'Kentucky'] }, ' controlled the territory that would later become Tennessee during and after the Revolutionary War.'] },
+    { n: 9,  t: ['To control or lead a group of people is to ', { a: 'govern', d: ['cede', 'debate', 'compromise', 'delegate'] }, '.'] },
+    { n: 10, t: [{ a: 'Frankland', d: ['Franklin', 'Tennessee', 'Watauga', 'Kentucky'] }, ' was the original name of the proposed state in 1784.'] },
+    { n: 11, t: ['Someone that is chosen to represent a group of people is a ', { a: 'delegate', d: ['loyalist', 'governor', 'legislature', 'census'] }, '.'] },
+    { n: 12, t: ['Settlers in the area were unhappy because they felt the ', { a: 'capital', d: ['fort', 'river', 'market', 'court'] }, ' was too far away, and North Carolina was no help against ', { a: 'Indian', d: ['British', 'Loyalist', 'Spanish', 'French'] }, ' attacks.'] },
+    { n: 13, t: ['In hopes of gaining his support, delegates decided to name the proposed state after ', { a: 'Benjamin Franklin', d: ['John Sevier', 'George Washington', 'William Blount', 'Lord Cornwallis'] }, '.'] },
+    { n: 14, t: [{ a: 'Disagreements', d: ['Floods', 'Taxes', 'Diseases', 'Treaties'] }, ' between settlers over the control of government was a BIG reason for Franklin not succeeding.'] },
+    { n: 15, t: ['Settlers were ', { a: 'happy', d: ['angry', 'sad', 'scared', 'confused'] }, ' when the federal government took control of the territory in 1790.'] },
+    { n: 16, t: ['John Sevier was paid a salary of ', { a: '1,000', d: ['100', '10,000', '500', '5,000'] }, ' ', { a: 'deerskins', d: ['dollars', 'acres', 'horses', 'pounds'] }, ' for his term as governor of Franklin.'] },
+    { n: 17, t: ['The ', { a: 'legislature', d: ['census', 'delegate', 'capital', 'compromise'] }, ' is the government body that makes and changes laws.'] },
+    { n: 18, t: ['Franklin didn’t receive the necessary votes from Congress for statehood under the ', { a: 'Articles of Confederation', d: ['Constitution', 'Declaration of Independence', 'Bill of Rights', 'Cumberland Compact'] }, '.'] },
+    { n: 19, t: ['North Carolina had to give the Western Region to the Federal government because of a ', { a: 'debt', d: ['flood', 'war', 'drought', 'treaty'] }, ' in the year ', { a: '1790', d: ['1784', '1791', '1795', '1796'] }, '.'] },
+    { n: 20, t: [{ a: 'William Blount', d: ['John Sevier', 'James Robertson', 'Benjamin Franklin', 'Lord Cornwallis'] }, ' was appointed governor of the Southwest Territories.'] },
+    { n: 21, t: ['Establishing Franklin was Tennessee’s ', { a: 'first attempt', d: ['second attempt', 'third attempt', 'final attempt', 'only attempt'] }, ' at statehood.'] },
+    { n: 22, t: ['The ', { a: 'population', d: ['debt', 'militia', 'legislature', 'area'] }, ' of the Southwest Territories grew from 35,691 in ', { a: '1791', d: ['1784', '1790', '1795', '1796'] }, ' to 77,262 in ', { a: '1795', d: ['1790', '1791', '1796', '1784'] }, '.'] },
+    { n: 23, t: ['An official count of the population is a ', { a: 'census', d: ['debate', 'term', 'compromise', 'legislature'] }, '.'] },
+    { n: 24, t: ['Tennessee became the ', { a: '16th', d: ['13th', '14th', '15th', '17th'] }, ' state in the Union.'] },
+    { n: 25, t: [{ a: 'John Sevier', d: ['William Blount', 'James Robertson', 'Daniel Boone', 'Benjamin Franklin'] }, ' was the first governor of Tennessee, and served for 12 years.'] },
+    { n: 26, t: [{ a: 'Knoxville', d: ['Nashville', 'Kingston', 'Memphis', 'Chattanooga'] }, ' was the original capital of Tennessee.'] },
+    { n: 27, t: [{ a: '5,000 free', d: ['500 free', '1,000 free', '10,000 free', '60,000 free'] }, ' men and a total population of ', { a: '60,000', d: ['6,000', '5,000', '600,000', '35,691'] }, ' had to be met to apply for statehood.'] },
+    { n: 28, t: ['To settle a disagreement or conflict by which each side gives up something to get something is a ', { a: 'compromise', d: ['debate', 'census', 'term', 'delegate'] }, '.'] },
+    { n: 29, t: ['To give something up, especially land is to ', { a: 'cede', d: ['govern', 'debate', 'lease', 'settle'] }, '.'] },
+    { n: 30, t: [{ a: 'Kingston', d: ['Knoxville', 'Nashville', 'Memphis', 'Jonesborough'] }, ' was named capital for a day to fulfill a promise to ', { a: 'Cherokee', d: ['Creek', 'Chickasaw', 'Shawnee', 'Loyalists'] }, '.'] },
+    { n: 31, t: ['It took Congress ', { a: 'a month', d: ['a day', 'a week', 'a year', 'ten years'] }, ' to finally admit Tennessee as a state.'] },
+    { n: 32, t: ['A ', { a: 'debate', d: ['compromise', 'census', 'term', 'delegate'] }, ' is a discussion between people or a group of people with opposing points of view.'] },
+    { n: 33, t: ['The city that holds official seat of government for a country or state is the ', { a: 'capital', d: ['census', 'legislature', 'territory', 'county'] }, '.'] },
+    { n: 34, t: ['Tennessee officially became a state on ', { a: 'June 1, 1796', d: ['July 4, 1796', 'June 1, 1790', 'March 3, 1795', 'June 1, 1791'] }, '.'] },
+    { n: 35, t: ['A ', { a: 'term', d: ['debate', 'census', 'compromise', 'delegate'] }, ' is a fixed period of time, often referring to how long an elected official holds office.'] }
+  ];
+
   var LEVELS = [
     { id: 'ch15-16', n: 1, name: 'Ch 15–16', items: ITEMS_1 },
-    { id: 'ch17-19', n: 2, name: 'Ch 17, 18 & 19', items: ITEMS_2 }
+    { id: 'ch17-19', n: 2, name: 'Ch 17, 18 & 19', items: ITEMS_2 },
+    { id: 'ch20-22', n: 3, name: 'Ch 20–22', items: ITEMS_3 }
   ];
 
   // Flatten each level to one card per blank.
