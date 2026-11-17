@@ -28,7 +28,7 @@ jobs:
         with:
           enablement: true
       - name: Stage the game
-        run: mkdir -p site && cp index.html site/
+        run: mkdir -p site && cp index.html preview.png site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
