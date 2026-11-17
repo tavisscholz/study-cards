@@ -543,10 +543,59 @@
     { n: 35, t: ['A ', { a: 'term', d: ['debate', 'census', 'compromise', 'delegate'] }, ' is a fixed period of time, often referring to how long an elected official holds office.'] }
   ];
 
+  // Level 4: Ch 23–25 — the War of 1812, Andrew Jackson, Indian removal,
+  // Sequoyah and Texas. Spelling follows the textbook (volunteer,
+  // politician, Chickasaw, Crockett, negotiation); wording follows the
+  // worksheet. Item 23's year is 1828, the year Jackson was elected.
+  var ITEMS_4 = [
+    { n: 1,  t: ['Impressment and trade sanctions were ways Great Britain ', { a: 'intruded', d: ['prospered', 'negotiated', 'expanded', 'volunteered'] }, ' on America’s independence.'] },
+    { n: 2,  t: ['At the same time the War of 1812 broke out the ', { a: 'Creek', d: ['Cherokee', 'Chickasaw', 'Shawnee', 'Choctaw'] }, ' tribe was involved in a civil war inside its nations.'] },
+    { n: 3,  t: [{ a: 'Impressment', d: ['Negotiation', 'Reservation', 'Expansion', 'Volunteering'] }, ' is seizing something for public use or forcing someone into public service.'] },
+    { n: 4,  t: [{ a: 'Red Sticks', d: ['Blue Sticks', 'Black Sticks', 'Green Sticks', 'Gray Sticks'] }, ' were Creeks that sided with the British and ', { a: 'White Sticks', d: ['Blue Sticks', 'Black Sticks', 'Green Sticks', 'Gray Sticks'] }, ' were Creeks that sided with the US.'] },
+    { n: 5,  t: [{ a: 'Andrew Jackson', d: ['Sam Houston', 'Davy Crockett', 'James K. Polk', 'Tecumseh'] }, ' was the commanding officer of the US troops at The Battle of Horseshoe Bend.'] },
+    { n: 6,  t: [{ a: 'Tecumseh', d: ['Sequoyah', 'John Ross', 'Major Ridge', 'Dragging Canoe'] }, ' was a Shawnee warrior that fought against the US in hopes of stopping the expansion of the US into Indian territory.'] },
+    { n: 7,  t: [{ a: 'Decade', d: ['Century', 'Term', 'Generation', 'Year'] }, ' is a period of 10 years.'] },
+    { n: 8,  t: ['The US victory at the Battle of Horseshoe Bend ended the ', { a: 'Creek', d: ['Cherokee', 'Chickasaw', 'Shawnee', 'Seminole'] }, ' civil war, and broke their power in the region.'] },
+    { n: 9,  t: ['Someone that freely offers something without receiving pay is a ', { a: 'volunteer', d: ['politician', 'delegate', 'soldier', 'judge'] }, '.'] },
+    { n: 10, t: ['A war between citizens of the same country is a ', { a: 'civil war', d: ['world war', 'trade war', 'cold war', 'border war'] }, '.'] },
+    { n: 11, t: ['Months after the Battle of Horseshoe Bend the Creek had to sign the ', { a: 'Treaty of Fort Jackson', d: ['Treaty of Echota', 'Jackson Purchase', 'Indian Removal Act', 'Treaty of Horseshoe Bend'] }, ' that ceded ', { a: '23 million acres', d: ['2 million acres', '20 million acres', '6,000 square miles', '13 million acres'] }, ' of land the US government.'] },
+    { n: 12, t: [{ a: 'Tennessee', d: ['Texas', 'Kentucky', 'Georgia', 'Virginia'] }, ' is known as the Volunteer state because of their people always willing to fight in any war deemed worthy.'] },
+    { n: 13, t: ['Andrew Jackson was a ', { a: 'politician', d: ['doctor', 'farmer', 'preacher', 'blacksmith'] }, ', ', { a: 'soldier', d: ['doctor', 'farmer', 'preacher', 'blacksmith'] }, ', ', { a: 'judge', d: ['doctor', 'farmer', 'preacher', 'blacksmith'] }, ', and ', { a: 'lawyer', d: ['doctor', 'farmer', 'preacher', 'blacksmith'] }, ' during his lifetime.'] },
+    { n: 14, t: ['Winning the Battle of ', { a: 'Horseshoe Bend', d: ['Kings Mountain', 'the Bluffs', 'San Jacinto', 'the Alamo'] }, ' and the Battle of ', { a: 'New Orleans', d: ['Kings Mountain', 'San Jacinto', 'the Alamo', 'Fort Jackson'] }, ' during the War of 1812 gave him a reputation of a national hero.'] },
+    { n: 15, t: ['Jackson introduced the ', { a: 'Indian Removal Act', d: ['Treaty of Echota', 'Jackson Purchase', 'Trail of Tears', 'Treaty of Fort Jackson'] }, ' in 1830 to help make room for US expansion.'] },
+    { n: 16, t: ['One that is lively and full of energy, sometimes aggressively so, is said to be ', { a: 'feisty', d: ['scared', 'lame', 'ordinary', 'diplomatic'] }, '.'] },
+    { n: 17, t: ['Jackson joined the Revolutionary War cause at the age of ', { a: '13', d: ['7', '16', '18', '21'] }, '.'] },
+    { n: 18, t: ['The Indian Removal Act stated that Indians were move ', { a: 'west', d: ['east', 'north', 'south', 'along'] }, ' of the Mississippi River into the proposed Indian Territory onto reservations in modern day ', { a: 'Oklahoma', d: ['Texas', 'Arkansas', 'Georgia', 'Kansas'] }, '.'] },
+    { n: 19, t: ['To do well, or achieve success is to ', { a: 'prosper', d: ['intrude', 'negotiate', 'expand', 'volunteer'] }, '.'] },
+    { n: 20, t: ['Jackson earned the nickname “The People’s President” by fighting to pass laws for ', { a: 'ordinary people', d: ['rich people', 'soldiers', 'politicians', 'Cherokee people'] }, '.'] },
+    { n: 21, t: [{ a: 'Major Ridge', d: ['John Ross', 'Sequoyah', 'Tecumseh', 'Andrew Jackson'] }, ' signed the Treaty of Echota behind the backs of the Cherokee people.'] },
+    { n: 22, t: ['Someone that campaigns for and holds a government position is a ', { a: 'politician', d: ['volunteer', 'judge', 'soldier', 'lawyer'] }, '.'] },
+    { n: 23, t: ['Jackson was elected as the ', { a: '7th', d: ['1st', '5th', '8th', '12th'] }, ' president in the year ', { a: '1828', d: ['1812', '1818', '1830', '1836'] }, '.'] },
+    { n: 24, t: ['The 1,000 mile trek that forced 15,000 Cherokee from their homes in the southeast to the Indian Territory was known as ', { a: 'the Trail of Tears', d: ['the Jackson Purchase', 'the Indian Removal Act', 'the Treaty of Echota', 'the Great Migration'] }, '.'] },
+    { n: 25, t: ['The half Cherokee, half Scottish chief of the Cherokee that fought for diplomatic resolutions for his people was ', { a: 'John Ross', d: ['Major Ridge', 'Sequoyah', 'Tecumseh', 'Sam Houston'] }, '.'] },
+    { n: 26, t: ['A tract of public land set aside for indigenous people is a ', { a: 'reservation', d: ['mission', 'plantation', 'syllabary', 'purchase'] }, '.'] },
+    { n: 27, t: ['The ', { a: 'Treaty of Echota', d: ['Treaty of Fort Jackson', 'Jackson Purchase', 'Indian Removal Act', 'Treaty of New Orleans'] }, ' gave the US government the last of the Cherokee land in GA, and promised they would move west of the Mississippi River into the Indian Territory.'] },
+    { n: 28, t: ['The ', { a: 'Jackson Purchase', d: ['Transylvania Purchase', 'Louisiana Purchase', 'Treaty of Echota', 'Treaty of Fort Jackson'] }, ' saw the state of Tennessee gain 6,000 square miles of ', { a: 'Chickasaw', d: ['Cherokee', 'Creek', 'Shawnee', 'Choctaw'] }, ' Indian territory in 1818.'] },
+    { n: 29, t: [{ a: 'James K. Polk', d: ['Andrew Jackson', 'Sam Houston', 'Davy Crockett', 'John Sevier'] }, ' ran on the idea that it was America’s destiny to expand to the Pacific Ocean, an idea he called ', { a: 'Manifest Destiny', d: ['the Louisiana Purchase', 'the American Dream', 'the Monroe Doctrine', 'the Great Migration'] }, '.'] },
+    { n: 30, t: ['A building or group of buildings used by a religious organization to spread its faith is known as a ', { a: 'mission', d: ['reservation', 'syllabary', 'fort', 'capital'] }, '.'] },
+    { n: 31, t: [{ a: 'Davy Crockett', d: ['Sam Houston', 'James K. Polk', 'John Sevier', 'Andrew Jackson'] }, ' was a scout for Andrew Jackson, a Tennessee state representative, and fought and died in the War for Texas Independence.'] },
+    { n: 32, t: ['It took ', { a: '12', d: ['2', '5', '20', '85'] }, ' years for ', { a: 'Sequoyah', d: ['John Ross', 'Major Ridge', 'Tecumseh', 'Davy Crockett'] }, ' to complete the Cherokee Syllabary.'] },
+    { n: 33, t: [{ a: 'Sam Houston', d: ['Davy Crockett', 'James K. Polk', 'Andrew Jackson', 'John Sevier'] }, ' resigned as ', { a: 'Tennessee', d: ['Texas', 'Georgia', 'Kentucky', 'Virginia'] }, ' governor to join the War for Texas Independence, won a battle at the San Jacinto River, and signed the papers that made Texas the 28th state.'] },
+    { n: 34, t: ['A formal discussion with a person or group of people in order to reach an agreement is a ', { a: 'negotiation', d: ['reservation', 'mission', 'debate', 'syllabary'] }, '.'] },
+    { n: 35, t: ['Davy Crockett died at the ', { a: 'Alamo', d: ['Horseshoe Bend', 'San Jacinto', 'New Orleans', 'Fort Jackson'] }, ' on ', { a: 'March 6, 1836', d: ['March 6, 1830', 'July 4, 1836', 'January 8, 1815', 'March 27, 1814'] }, ' after holding off the superior numbered Mexican army for ', { a: '13', d: ['3', '7', '30', '100'] }, ' days.'] },
+    { n: 36, t: ['A set of written characters representing syllables is a ', { a: 'syllabary', d: ['alphabet', 'mission', 'treaty', 'reservation'] }, '.'] },
+    { n: 37, t: ['Sequoyah fought with Jackson and the White Sticks at ', { a: 'Battle of Horseshoe Bend', d: ['Battle of New Orleans', 'Battle of Kings Mountain', 'Battle of the Bluffs', 'Battle of San Jacinto'] }, ' despite having a ', { a: 'lame', d: ['wooden', 'strong', 'feisty', 'long'] }, ' leg from a hunting accident as a boy.'] },
+    { n: 38, t: ['The Jackson Purchase ', { a: 'expanded', d: ['shrank', 'closed', 'divided', 'erased'] }, ' Tennessee’s ', { a: 'western', d: ['eastern', 'northern', 'southern', 'upper'] }, ' border to the Mississippi River.'] },
+    { n: 39, t: ['Texas, California, Arizona, New Mexico, parts of Colorado and Wyoming, and Oregon south of the 49th parallel were territories added to the US during ', { a: 'James K. Polk’s', d: ['Andrew Jackson’s', 'Sam Houston’s', 'John Sevier’s', 'Davy Crockett’s'] }, ' presidency.'] },
+    { n: 40, t: ['The Cherokee Syllabary ended up with ', { a: '85', d: ['12', '26', '50', '100'] }, ' sounds and characters.'] },
+    { n: 41, t: ['The Cherokee were ', { a: 'scared', d: ['excited', 'happy', 'eager', 'proud'] }, ' to use the new written language at first.'] }
+  ];
+
   var LEVELS = [
     { id: 'ch15-16', n: 1, name: 'Ch 15–16', items: ITEMS_1 },
     { id: 'ch17-19', n: 2, name: 'Ch 17, 18 & 19', items: ITEMS_2 },
-    { id: 'ch20-22', n: 3, name: 'Ch 20–22', items: ITEMS_3 }
+    { id: 'ch20-22', n: 3, name: 'Ch 20–22', items: ITEMS_3 },
+    { id: 'ch23-25', n: 4, name: 'Ch 23–25', items: ITEMS_4 }
   ];
 
   // Flatten each level to one card per blank.
