@@ -1,0 +1,61 @@
+const { chromium } = require('playwright');
+const url = 'file://' + require('path').resolve(__dirname, '..', 'index.html');
+const R = []; require('fs').mkdirSync(__dirname + '/shots', { recursive: true }); const check = (n, ok, info) => R.push([ok ? 'PASS' : 'FAIL', n, info || '']);
+const t = (pg, id) => pg.evaluate(id => document.getElementById(id).textContent, id);
+(async () => {
+  const b = await chromium.launch();
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const pg = await ctx.newPage(); const errs = [];
+  pg.on('pageerror', e => errs.push(String(e)));
+  await pg.goto(url); await pg.waitForTimeout(300);
+  await pg.evaluate(() => {
+    localStorage.clear();
+    const cards = {}; window.__addie.levels[0].cards.forEach((c, i) => { cards[c.id] = { box: i < 5 ? 5 : 2, due: Date.now() + 1e7, seen: 1, right: 3, wrong: 0 }; });
+    localStorage.setItem('addie-ch15-16-cards-v1', JSON.stringify({ v: 1, cards, bestStreak: 7, rounds: 4, highScore: 1234 }));
+  });
+  await pg.reload(); await pg.waitForTimeout(400);
+  const mig = await pg.evaluate(() => ({ lvl: window.__addie.level.id, mastered: document.getElementById('t-mastered').textContent, hs: window.__addie.state.highScore, rounds: window.__addie.state.rounds }));
+  check('old save migrated into Level 1', mig.lvl === 'ch15-16' && mig.mastered === '5' && mig.hs === 1234 && mig.rounds === 4, JSON.stringify(mig));
+  const tabs = await pg.evaluate(() => Array.from(document.querySelectorAll('.lvl')).map(b => ({ txt: b.textContent, active: b.classList.contains('active'), h: b.getBoundingClientRect().height, w: b.getBoundingClientRect().width })));
+  check('four level tabs, level 1 active', tabs.length === 4 && tabs[0].active && !tabs[1].active && !tabs[2].active && !tabs[3].active && /36 cards · new/.test(tabs[1].txt) && /Ch 20–22/.test(tabs[2].txt) && /42 cards · new/.test(tabs[2].txt) && /Ch 23–25/.test(tabs[3].txt) && /57 cards · new/.test(tabs[3].txt), JSON.stringify(tabs.map(x => x.txt)));
+  check('tabs are tappable height', tabs.every(x => x.h >= 44), tabs.map(x => Math.round(x.h)).join(','));
+  for (const [idx, id, n, items, eyebrow, firstRe, multi] of [[2, 'ch17-19', 36, 32, 'Ch 17, 18 & 19 Study Guide', /Daniel Boone/, ['14a','14b','29a','29b','29c','29d']], [3, 'ch20-22', 42, 35, 'Ch 20–22 Study Guide', /Overmountain Territories/, ['12a','12b','16a','16b','19a','19b','22a','22b','22c','27a','27b','30a','30b']], [4, 'ch23-25', 57, 41, 'Ch 23–25 Study Guide', /Impressment and trade sanctions/, ['4a','4b','11a','11b','13a','13b','13c','13d','14a','14b','18a','18b','23a','23b','28a','28b','29a','29b','32a','32b','33a','33b','35a','35b','35c','37a','37b','38a','38b']]]) {
+    await pg.click(`.lvl:nth-child(${idx})`); await pg.waitForTimeout(200);
+    const l = await pg.evaluate(() => ({ id: window.__addie.level.id, n: window.__addie.cards.length, eyebrow: document.getElementById('eyebrow').textContent, due: document.getElementById('t-due').textContent, play: document.getElementById('btn-play').textContent, map: document.querySelectorAll('#map-home .cell').length, lbl: document.getElementById('map-lbl').textContent, hs: document.getElementById('home-hs').classList.contains('hidden') }));
+    check(`level ${idx} selected: ${n} cards, own labels`, l.id === id && l.n === n && l.due === String(n) && l.map === n && l.lbl === `Your ${n} cards` && l.eyebrow === eyebrow && l.play === `Start Level ${idx}` && l.hs, JSON.stringify(l));
+    const deck = await pg.evaluate(() => window.__addie.cards.map(c => ({ id: c.id, a: c.answer, d: c.distractors })));
+    const bad = deck.filter(c => c.d.length !== 4 || c.d.includes(c.a) || new Set(c.d).size !== 4 || !c.a);
+    check(`level ${idx} deck well-formed`, bad.length === 0, JSON.stringify(bad));
+    const ids = deck.map(c => c.id);
+    check(`level ${idx} multi-blank ids present`, multi.every(i => ids.includes(i)) && new Set(ids).size === n, ids.join(','));
+    await pg.click('#btn-sheet'); await pg.waitForTimeout(200);
+    const sheet = await pg.evaluate(() => ({ h: document.getElementById('sheet-h').textContent, n: document.querySelectorAll('#sheet-list li').length, first: document.querySelector('#sheet-list li').textContent }));
+    check(`level ${idx} answer sheet: ${items} items`, sheet.h === eyebrow && sheet.n === items && firstRe.test(sheet.first), JSON.stringify(sheet));
+    await pg.click('#btn-home-2'); await pg.waitForTimeout(200);
+  }
+  // play one level-3 card; level 1 untouched; persists
+  await pg.click('#btn-play'); await pg.waitForTimeout(1100);
+  const cur = await pg.evaluate(() => ({ id: window.__addie.round.current.id, a: window.__addie.round.current.answer }));
+  await pg.evaluate(a => Array.from(document.querySelectorAll('.opt')).find(x => x.getAttribute('data-w') === a).click(), cur.a);
+  await pg.waitForTimeout(200);
+  const after = await pg.evaluate(id => ({ box: window.__addie.state.cards[id].box, l1mastered: Object.values(window.__addie.all.levels['ch15-16'].cards).filter(c => c.box === 5).length, cur: window.__addie.all.current }), cur.id);
+  check('level 4 card promoted, level 1 untouched', after.box === 1 && after.l1mastered === 5 && after.cur === 'ch23-25', JSON.stringify(after));
+  await pg.screenshot({ path: __dirname + '/shots/level4-card-390.png', fullPage: true });
+  await pg.click('#btn-quit'); await pg.waitForTimeout(200);
+  await pg.reload(); await pg.waitForTimeout(400);
+  const persisted = await pg.evaluate(() => ({ lvl: window.__addie.level.id, learning: document.getElementById('t-learning').textContent, tab4: document.querySelector('.lvl:nth-child(4)').textContent }));
+  check('reload keeps level 4 selected with progress', persisted.lvl === 'ch23-25' && persisted.learning === '1' && /0% mastered/.test(persisted.tab4), JSON.stringify(persisted));
+  pg.on('dialog', d => d.accept());
+  await pg.click('.lvl:nth-child(1)'); await pg.waitForTimeout(200);
+  await pg.click('#btn-reset'); await pg.waitForTimeout(300);
+  const rst = await pg.evaluate(() => ({ l1due: document.getElementById('t-due').textContent, hs: window.__addie.state.highScore, l4learning: Object.values(window.__addie.all.levels['ch23-25'].cards).filter(c => c.box === 1).length }));
+  check('reset clears level 1 only, keeps high score', rst.l1due === '32' && rst.hs === 1234 && rst.l4learning === 1, JSON.stringify(rst));
+  const ov = await pg.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  check('no horizontal overflow at 390', !ov);
+  await pg.screenshot({ path: __dirname + '/shots/levels4-home-390.png', fullPage: true });
+  await pg.setViewportSize({ width: 1200, height: 900 }); await pg.waitForTimeout(200);
+  await pg.screenshot({ path: __dirname + '/shots/levels4-home-1200.png', fullPage: true });
+  check('no page errors', errs.length === 0, errs.join('|'));
+  console.table(R);
+  await b.close();
+})().catch(e => { console.error('SCRIPT ERROR', e); process.exit(1); });

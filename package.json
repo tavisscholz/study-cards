@@ -1,0 +1,12 @@
+{
+  "name": "study-cards",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Addie's Cards: a fill-in-the-blank index-card study game with spaced repetition. One HTML file, no server.",
+  "scripts": {
+    "test": "node tests/levels.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
+  }
+}
