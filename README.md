@@ -65,8 +65,8 @@ writes screenshots to `tests/shots/`.
 
 ## Hosting
 
-To give someone a link instead of a file, turn on GitHub Pages for this
-repository (Settings → Pages → Deploy from a branch → `main`, root). The game
-will be served at `https://<user>.github.io/study-cards/`. Pages on a private
-repository needs a paid GitHub plan; on the free plan the repository has to be
-public.
+The game is published with GitHub Pages at
+**https://tavisscholz.github.io/study-cards/** — open that on a phone and
+use "Add to Home Screen" to keep it like an app. Every push to `main` runs
+`.github/workflows/pages.yml`, which deploys `index.html` (and nothing
+else) to Pages.
